@@ -84,7 +84,7 @@ use File::Path;
 use Getopt::Long;
 use Set::Tiny 0.04;
 
-use Jenkins::i18n qw(remove_unused);
+use Jenkins::i18n qw(remove_unused find_files);
 
 my $DATA_START = tell DATA;
 
@@ -125,17 +125,17 @@ unless ( ($lang) and ( $lang ne 'en' ) ) {
 
 print "Searching for files ...\n";
 ## look for Message.properties and *.jelly files in the provided folder
-my @files = findTranslatableFiles($dir);
-print 'Found ', scalar(@files), ' files', "\n";
+my $files_ref = find_files($dir);
+print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
 
 ## load a cache with keys already translated to utilize in the case the same key
 ## is used
 my %cache = loadAllTranslatedKeys( $reuse, $lang ) if ( $reuse && -e $reuse );
 
 ## process each file
-foreach (@files) {
+foreach my $file ( @{$files_ref} ) {
     $tfiles++;
-    process_file($_);
+    process_file($file);
 }
 
 ## print statistics
@@ -309,23 +309,6 @@ sub loadAllTranslatedKeys {
         }
     }
     return %ret;
-}
-
-# Look for Message.properties and *.jelly files
-sub findTranslatableFiles {
-    my $dir = shift;
-    die "Folder doesn't exist: $dir\n" unless ( -e $dir );
-    my @ret;
-    find(
-        sub {
-            my $file = $File::Find::name;
-            push( @ret, $file )
-                if ( $file !~ m#(/src/test/)|(/target/)|(\.svn)#
-                && $file =~ /(Messages.properties)$|(.*\.jelly)$/ );
-        },
-        $dir
-    );
-    return @ret;
 }
 
 # Fill a hash with key/1 pairs from a .jelly file

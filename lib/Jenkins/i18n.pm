@@ -3,6 +3,9 @@ package Jenkins::i18n;
 use 5.014004;
 use strict;
 use warnings;
+use Carp qw(confess);
+use File::Find;
+
 use Jenkins::i18n::Properties;
 
 =pod
@@ -26,7 +29,7 @@ This module implements the functions used by the CLI.
 
 use Exporter 'import';
 our @EXPORT = qw(
-    remove_unused
+    remove_unused find_files
 );
 
 our $VERSION = '0.01';
@@ -79,13 +82,13 @@ Returns the number of keys removed (as an integer).
 
 sub remove_unused {
     my $file = shift;
-    die "file is a required parameter\n" unless ( defined($file) );
+    confess "file is a required parameter\n" unless ( defined($file) );
     my $keys = shift;
-    die "keys is a required parameter\n" unless ( defined($keys) );
-    die "keys must be a Set::Tiny instance\n"
+    confess "keys is a required parameter\n" unless ( defined($keys) );
+    confess "keys must be a Set::Tiny instance\n"
         unless ( ref($keys) eq 'Set::Tiny' );
     my $license_ref = shift;
-    die "license must be an array reference"
+    confess "license must be an array reference"
         unless ( ref($license_ref) eq 'ARRAY' );
     my $use_backup = shift;
     $use_backup = 0 unless ( defined($use_backup) );
@@ -95,7 +98,7 @@ sub remove_unused {
     if ($use_backup) {
         my $backup = "$file.bak";
         rename( $file, $backup )
-            or die "Cannot rename $file to $backup: $!\n";
+            or confess "Cannot rename $file to $backup: $!\n";
         $props_handler = Jenkins::i18n::Properties->new( file => $backup );
     }
     else {
@@ -109,11 +112,44 @@ sub remove_unused {
         $removed++ unless ( $keys->has($key) );
     }
 
-    open( my $out, '>', $file ) or die "Cannot write to $file: $!\n";
+    open( my $out, '>', $file ) or confess "Cannot write to $file: $!\n";
     $props_handler->save( $out, $license_ref );
-    close($out) or die "Cannot save $file: $!\n";
+    close($out) or confess "Cannot save $file: $!\n";
 
     return $removed;
+}
+
+=head2 find_files
+
+Find all files Jelly and Java Properties files that could be translated from
+English, i.e., files that do not have a ISO 639-1 standard language based code
+as a filename prefix (before the file extension).
+
+Expects as parameter a complete path to a directory that might contain such
+files.
+
+Returns an array reference with the complete path to those files.
+
+=cut
+
+sub find_files {
+    my $dir = shift;
+    confess "Must provide a string, invalid directory parameter"
+        unless ($dir);
+    confess "Must provide a string, invalid directory parameter"
+        unless ( ref($dir) eq '' );
+    confess "Directory $dir must exists" unless ( -d $dir );
+    my @files;
+    find(
+        sub {
+            my $file = $File::Find::name;
+            push( @files, $file )
+                if ( $file !~ m#(/src/test/)|(/target/)#
+                && $file =~ /(Messages.properties)$|(.*\.jelly)$/ );
+        },
+        $dir
+    );
+    return \@files;
 }
 
 1;
