@@ -6,7 +6,38 @@ unused keys for a given language.
 This is a fork from the original Perl script `translation-tool.pl` available at
 the [official Jenkins project](https://github.com/jenkinsci/jenkins).
 
+## Differences from the original script
+
+### No encoding conversion
+
+The script `translation-tool.pl` tried to convert Jenkins properties from
+ASCII to UTF-8 and vice-versa using regular expressions. No need to tell how
+well that worked.
+
+In fact, Jenkins use Java Properties and Jelly files to implemented
+internationalization, and all translations mus be stored in files that uses
+ISO-8859-1 encoding and any characters that are not supported by it must be
+converted to Java entities.
+
+The best way to achieve that is to use your preferred IDE configured to receive
+UTF-8 as input and automatically convert to ISO-8859-1 with Java entities: that
+you save you from a lot of headaches, leaving you to worry about normally
+editing the files.
+
+Instructions to setup that will vary depending on the IDE, but here are some
+references:
+
+- [IntelliJ IDEA](https://www.jetbrains.com/help/idea/encoding.html#file-encoding-settings)
+
 ## Install
+
+### TLDR
+
+  ```
+  cpan Jenkins::i18n
+  ```
+
+### Detailed description
 
 There are several ways to install Perl modules, all very well documented by
 the community. Those external dependencies are all Perl modules available at
