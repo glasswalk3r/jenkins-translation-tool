@@ -63,8 +63,8 @@ ok( -s $backup, "File has a backup as expected at $backup" );
 sub read_and_count {
     my $file          = shift;
     my $props_handler = Jenkins::i18n::Properties->new( file => $file );
-    my %curr_props    = $props_handler->properties;
-    return keys(%curr_props);
+    my @names = $props_handler->propertyNames;
+    return scalar(@names);
 }
 
 # -*- mode: perl -*-
