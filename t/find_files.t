@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More;
+use Test::More tests => 9;
 use File::Spec;
 use Test::Exception 0.43;
 
@@ -24,8 +24,6 @@ my $expected_ref
 is_deeply( $files_ref, $expected_ref,
     'find_files returns the expected files' )
     or diag( explain($files_ref) );
-
-done_testing;
 
 # -*- mode: perl -*-
 # vi: set ft=perl :
