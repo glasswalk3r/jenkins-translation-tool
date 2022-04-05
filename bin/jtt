@@ -83,7 +83,10 @@ use File::Path;
 use Getopt::Long;
 use Set::Tiny 0.04;
 
-use Jenkins::i18n qw(remove_unused find_files print_license load_properties);
+use Jenkins::i18n (
+    'remove_unused', 'find_files', 'print_license', 'load_properties',
+    'load_jelly'
+);
 
 my $DATA_START = tell DATA;
 
@@ -182,19 +185,16 @@ sub process_file {
    # lang_entries_ref -> keys/values in the desired language which are already
    # present in the file
     my ( $entries_ref, $lang_entries_ref, $english_entries_ref );
-    my %keys;
 
     # Read .jelly or Message.properties files, and fill a hash with the keys
     # found
     if ( $file =~ m/.jelly$/ ) {
-
-        # TODO: shitty naming
-        %keys                = loadJellyFile($file);
+        $entries_ref         = load_jelly($file);
         $english_entries_ref = load_properties($efile);
     }
     else {
         $english_entries_ref = load_properties($file);
-        %keys                = %{$english_entries_ref};
+        $entries_ref         = $english_entries_ref;
     }
 
     $lang_entries_ref = load_properties($ofile);
@@ -203,7 +203,7 @@ sub process_file {
     # TODO: check if an array or linked list is better here
     my $missing = "";
 
-    foreach my $entry ( keys %keys ) {
+    foreach my $entry ( keys %{$entries_ref} ) {
         $tkeys++;
         unless ( defined( $lang_entries_ref->{$entry} ) ) {
             $entry   .= "=" . $cache{$entry} if ( exists( $cache{$entry} ) );
@@ -222,7 +222,7 @@ sub process_file {
     my $unused = "";
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
-        unless ( defined $keys{$entry} ) {
+        unless ( defined $entries_ref->{$entry} ) {
             $unused .= "  Unused  -> $entry\n";
             $tunused++;
         }
@@ -264,7 +264,7 @@ sub process_file {
             unless ( -f $ofile );
         open( my $out, '>>', $ofile ) or die "Cannot write to $ofile: $!\n";
 
-        foreach my $entry ( keys %keys ) {
+        foreach my $entry ( keys %{$entries_ref} ) {
             unless ( exists( $lang_entries_ref->{$entry} ) ) {
 
                 unless ( $lang_entries_ref->{$entry} ) {
@@ -307,7 +307,7 @@ sub process_file {
     if ( $remove && $unused ne "" ) {
         my $removed = remove_unused(
             $ofile,
-            Set::Tiny->new( keys(%keys) ),
+            Set::Tiny->new( keys( %{$entries_ref} ) ),
             read_license($DATA_START)
         );
         print "Removed $removed keys\n";
@@ -328,33 +328,6 @@ sub loadAllTranslatedKeys {
             $ret{$k} = $v unless defined( $ret{$k} );
         }
     }
-    return %ret;
-}
-
-# Fill a hash with key/1 pairs from a .jelly file
-sub loadJellyFile {
-    my $file = shift;
-    my %ret;
-    open( F, $file ) || die $! . " " . $file;
-    while (<F>) {
-        next if ( !/\$\{.*?\%([^\(]+?).*\}/ );
-        my $line = $_;
-        while ($line =~ /^.*?\$\{\%([^\(\}]+)(.*)$/
-            || $line =~ /^.*?\$\{.*?['"]\%([^\(\}\"\']+)(.*)$/ )
-        {
-            $line = $2;
-            my $word = $1;
-            $word =~ s/\(.+$//g;
-            $word =~ s/'+/''/g;
-            $word =~ s/ /\\ /g;
-            $word =~ s/\&gt;/>/g;
-            $word =~ s/\&lt;/</g;
-            $word =~ s/\&amp;/&/g;
-            $word =~ s/([#:=])/\\$1/g;
-            $ret{$word} = 1;
-        }
-    }
-    close(F);
     return %ret;
 }
 
