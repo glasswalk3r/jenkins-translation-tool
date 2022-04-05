@@ -10,7 +10,7 @@ like( warning { load_properties('foobar.properties') },
 my $sample = File::Spec->catfile( 't', 'samples', 'table_pt_BR.properties' );
 my $result = load_properties($sample);
 is( ref $result, 'HASH', 'result is a hash reference' );
-cmp_ok(scalar(keys(%{$result})), '>', 0, 'result has some keys on it');
+cmp_ok( scalar( keys( %{$result} ) ), '>', 0, 'result has some keys on it' );
 
 done_testing;
 
