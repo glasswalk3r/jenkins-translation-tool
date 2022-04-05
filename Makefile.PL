@@ -14,6 +14,7 @@ WriteMakefile(
     TEST_REQUIRES => {
         'Test::TempDir::Tiny' => 0.018,
         'Test::Exception' => 0.43,
+        'Test::Warnings' => 0.031,
     },
     LICENSE => 'gpl',
     MIN_PERL_VERSION => 5.014004

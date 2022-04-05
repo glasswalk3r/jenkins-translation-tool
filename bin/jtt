@@ -66,7 +66,7 @@ should point to Jenkins instead of the old name.
 
 =item *
 
-Original translation-tool.pl: Manuel Carrasco.
+Original C<translation-tool.pl>: Manuel Carrasco.
 
 =item *
 
@@ -79,12 +79,11 @@ Fork to C<jtt>: Alceu Rodrigues de Freitas Junior.
 use warnings;
 use strict;
 use File::Basename;
-use File::Find;
 use File::Path;
 use Getopt::Long;
 use Set::Tiny 0.04;
 
-use Jenkins::i18n qw(remove_unused find_files);
+use Jenkins::i18n qw(remove_unused find_files print_license load_properties);
 
 my $DATA_START = tell DATA;
 
@@ -179,62 +178,78 @@ sub process_file {
     $ofile =~ s/(\.jelly)|(\.properties)/_$lang.properties/;
     $efile =~ s/(\.jelly)/.properties/;
 
-    # keys  -> Hash of keys used in jelly or Message.properties files
-    # ekeys -> Hash of key/values in English
-    # okeys -> Hash of key/values in the desired language which are already
-    #          present in the file
-    my ( %keys, %okeys, %ekeys );
+   # entries_ref -> keys used in jelly or Message.properties files
+   # lang_entries_ref -> keys/values in the desired language which are already
+   # present in the file
+    my ( $entries_ref, $lang_entries_ref, $english_entries_ref );
+    my %keys;
 
     # Read .jelly or Message.properties files, and fill a hash with the keys
     # found
     if ( $file =~ m/.jelly$/ ) {
-        %keys  = loadJellyFile($file);
-        %ekeys = loadPropertiesFile($efile);
+
+        # TODO: shitty naming
+        %keys                = loadJellyFile($file);
+        $english_entries_ref = load_properties($efile);
     }
     else {
-        %keys = %ekeys = loadPropertiesFile($file);
+        $english_entries_ref = load_properties($file);
+        %keys                = %{$english_entries_ref};
     }
 
-    # load keys already present in the desired locale
-    %okeys = loadPropertiesFile($ofile);
+    $lang_entries_ref = load_properties($ofile);
 
     # calculate missing keys in the file
+    # TODO: check if an array or linked list is better here
     my $missing = "";
-    foreach ( keys %keys ) {
+
+    foreach my $entry ( keys %keys ) {
         $tkeys++;
-        if ( !defined( $okeys{$_} ) ) {
-            $_       .= "=" . $cache{$_} if ( defined( $cache{$_} ) );
-            $missing .= ( $add ? "  Adding " : "  Missing" ) . " -> $_\n";
+        unless ( defined( $lang_entries_ref->{$entry} ) ) {
+            $entry   .= "=" . $cache{$entry} if ( exists( $cache{$entry} ) );
+            $missing .= ( $add ? "  Adding " : "  Missing" ) . " -> $entry\n";
             $tmissing++;
+            next;
         }
-        elsif ( $okeys{$_} eq '' ) {
-            $missing .= "  Empty   -> $_\n";
+
+        if ( $lang_entries_ref->{$entry} eq '' ) {
+            $missing .= "  Empty   -> $entry\n";
             $tempty++;
         }
     }
 
     # calculate old keys in the file which are currently unused
     my $unused = "";
-    foreach ( keys %okeys ) {
-        if ( !defined $keys{$_} ) {
-            $unused .= "  Unused  -> $_\n";
+
+    foreach my $entry ( keys %{$lang_entries_ref} ) {
+        unless ( defined $keys{$entry} ) {
+            $unused .= "  Unused  -> $entry\n";
             $tunused++;
         }
     }
 
     # calculate keys which have the same value in English
     my $same = "";
-    foreach ( keys %okeys ) {
-        if ( $okeys{$_} && $ekeys{$_} && $okeys{$_} eq $ekeys{$_} ) {
-            $same .= "  Same    -> $_\n";
+
+    foreach my $entry ( keys %{$lang_entries_ref} ) {
+        if (   $lang_entries_ref->{$entry}
+            && $english_entries_ref->{$entry}
+            && $lang_entries_ref->{$entry} eq $english_entries_ref->{$entry} )
+        {
+            $same .= "  Same    -> $entry\n";
             $tsame++;
         }
     }
 
-    my $nj = "";
-    foreach ( keys %okeys ) {
-        if ( $okeys{$_} && $okeys{$_} =~ /Hudson/ ) {
-            $nj .= "  Non Jenkins    -> $_ -> $okeys{$_}\n";
+    my $nj           = "";
+    my $hudson_regex = qr/Hudson/;
+
+    foreach my $entry ( keys %{$lang_entries_ref} ) {
+        if (   $lang_entries_ref->{$entry}
+            && $lang_entries_ref->{$entry} =~ $hudson_regex )
+        {
+            $nj
+                .= "  Non Jenkins    -> $entry -> $lang_entries_ref->{$entry}\n";
             $tnojenkins++;
         }
     }
@@ -245,17 +260,18 @@ sub process_file {
 
     # write new keys in our file adding the English translation as a reference
     if ( $add && $missing ne "" ) {
-        printLicense( $DATA_START, $ofile ) unless ( -f $ofile );
+        print_license( $ofile, read_license($DATA_START) )
+            unless ( -f $ofile );
         open( my $out, '>>', $ofile ) or die "Cannot write to $ofile: $!\n";
 
-        foreach ( keys %keys ) {
-            if ( !$okeys{$_} ) {
+        foreach my $entry ( keys %keys ) {
+            unless ( exists( $lang_entries_ref->{$entry} ) ) {
 
-                if ( !defined( $okeys{$_} ) ) {
-                    print $out "$_=";
+                unless ( $lang_entries_ref->{$entry} ) {
+                    print $out "$entry=";
 
-                    if ( defined( $cache{$_} ) ) {
-                        print $out $cache{$_} . "\n";
+                    if ( defined( $cache{$entry} ) ) {
+                        print $out $cache{$entry} . "\n";
                     }
                     else {
                         if ($counter) {
@@ -263,7 +279,11 @@ sub process_file {
                             # add unique value for each added translation
                             print $out "---TranslateMe "
                                 . $countervalue . "--- "
-                                . ( $ekeys{$_} ? $ekeys{$_} : $_ ) . "\n";
+                                . (
+                                  $english_entries_ref->{$entry}
+                                ? $english_entries_ref->{$entry}
+                                : $entry
+                                ) . "\n";
                         }
                         else {
                             print $out "\n";
@@ -336,68 +356,6 @@ sub loadJellyFile {
     }
     close(F);
     return %ret;
-}
-
-# Fill a hash with key/value pairs from a .properties file
-sub loadPropertiesFile {
-    my $file = shift;
-    my %ret;
-    print "Trying to load $file... " if ($debug);
-
-    unless ( -f $file ) {
-        print "file does not exist, skipping.\n" if ($debug);
-        return %ret;
-    }
-
-    print "done.\n" if ($debug);
-    my $skip_comment = qr/^#/;
-    open( my $in, '<', $file ) or die "Cannot read $file: $!\n";
-    my ( $cont, $key, $val ) = ( 0, undef, undef );
-
-    while (<$in>) {
-        chomp;
-        next if $_ eq '';
-        next if $_ =~ $skip_comment;
-        print 'Line: ', $_, "\n" if ($debug);
-        s/[\r\n]+//;
-        $ret{$key} .= "\n$1" if ( $cont && /\s*(.*)[\\\s]*$/ );
-        if (/^([^#\s].*?[^\\])=(.*)[\s\\]*$/) {
-            ( $key, $val ) = ( trim($1), trim($2) );
-            $ret{$key} = $val;
-        }
-        $cont = (/\\\s*$/) ? 1 : 0;
-    }
-
-    close($in);
-
-    # TODO: Use of uninitialized value $_ in pattern match (m//) at
-    # ./translation-tool.pl line 345.
-    $ret{$key} .= "\n$1" if ( $cont && /\s*(.*)[\\\s]*$/ );
-    return %ret;
-}
-
-# print MIT license in new files
-# Note: the license is read from the head of this file
-sub printLicense {
-    my ( $start, $file ) = @_;
-    my $data_ref = read_license($start);
-    my $dir_name = dirname($file);
-    mkpath($dir_name) unless ( -d $dir_name );
-    open( my $out, ">" . $file ) or die "Cannot write to $file: $!\n";
-
-    foreach my $line ( @{$data_ref} ) {
-        print $out "#$line";
-    }
-
-    close($out);
-}
-
-# trim function to remove whitespace from the start and end of the string
-sub trim($) {
-    my $string = shift;
-    $string =~ s/^\s+//;
-    $string =~ s/\s+$//;
-    return $string;
 }
 
 sub usage {
