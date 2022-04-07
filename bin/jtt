@@ -82,16 +82,19 @@ use File::Basename;
 use File::Path;
 use Getopt::Long;
 use Set::Tiny 0.04;
+use Cwd;
 
 use Jenkins::i18n (
     'remove_unused', 'find_files', 'print_license', 'load_properties',
     'load_jelly'
 );
+use Jenkins::i18n::Stats;
 
 my $DATA_START = tell DATA;
+my $current_dir = getcwd;
 
 my ( $lang, $editor, $dir,, $add, $remove, $counter, $target, $help, $debug )
-    = ( undef, undef, "./", 0, 0, 0, "./", 0, 0 );
+    = ( undef, undef, $current_dir, 0, 0, 0, $current_dir, 0, 0 );
 
 GetOptions(
     'help'     => \$help,
@@ -112,12 +115,8 @@ if ($help) {
 
 $add = 1 if ($editor);
 
-my ( $tfiles, $tkeys, $tmissing, $tunused, $tempty, $tsame, $tnojenkins,
-    $countervalue )
-    = ( 0, 0, 0, 0, 0, 0, 0, 1 );
-
 # language parameter is mandatory and shouldn't be 'en'
-unless ( ($lang) and ( $lang ne 'en' ) ) {
+unless ( $lang and ( $lang ne 'en' ) ) {
     usage();
     exit(1);
 }
@@ -127,45 +126,19 @@ print "Searching for files ...\n";
 # look for Message.properties and *.jelly files in the provided folder
 my $files_ref = find_files($dir);
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
+my $stats = Jenkins::i18n::Stats->new;
+my $warnings = Jenkins::I18n::Warnings->new({is_add => $add});
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
-    $tfiles++;
-    process_file($file);
+    $stats->inc('files');
+    process_file($file, $stats, $warnings);
+    $warnings->reset;
 }
 
-## print statistics
-my $tdone = $tkeys - $tmissing - $tunused - $tempty - $tsame - $tnojenkins;
-
-my $pdone      = 100;
-my $pmissing   = 0;
-my $punused    = 0;
-my $pempty     = 0;
-my $psame      = 0;
-my $pnojenkins = 0;
-
-if ( $tkeys != 0 ) {
-    $pdone      = $tdone / $tkeys * 100;
-    $pmissing   = $tmissing / $tkeys * 100;
-    $punused    = $tunused / $tkeys * 100;
-    $pempty     = $tempty / $tkeys * 100;
-    $psame      = $tsame / $tkeys * 100;
-    $pnojenkins = $tnojenkins / $tkeys * 100;
-}
-
-my @formatParameters = (
-    $tfiles,   $tkeys,   $tdone,      $pdone,  $tmissing,
-    $pmissing, $tunused, $punused,    $tempty, $pempty,
-    $tsame,    $psame,   $tnojenkins, $pnojenkins
-);
-printf
-"\nTOTAL: Files: %d Keys: %d Done: %d(%.2f%%)\n       Missing: %d(%.2f%%) Orphan: %d(%.2f%%) Empty: %d(%.2f%%) Same: %d(%.2f%%) NoJenkins: %d(%.2f%%)\n\n",
-    (@formatParameters);
-## end
-exit();
-
-### This is the main method with is run for each file
+# This is the main method with is run for each file
 sub process_file {
+    my ($file, $stats, $warnings) = @_;
 
     #  ofile -> output file in the current language,
     #  efile -> english file
@@ -193,36 +166,28 @@ sub process_file {
 
     $lang_entries_ref = load_properties($ofile);
 
-    # calculate missing keys in the file
-    # TODO: check if an array or linked list is better here
-    my $missing = "";
-
     foreach my $entry ( keys %{$entries_ref} ) {
-        $tkeys++;
+        $stats->inc('keys');
+ 
+        # TODO: defined or exists?
         unless ( defined( $lang_entries_ref->{$entry} ) ) {
-            $missing .= ( $add ? "  Adding " : "  Missing" ) . " -> $entry\n";
-            $tmissing++;
+            $stats->inc('missing');
+            $warnings->add('missing', $entry);
             next;
         }
 
         if ( $lang_entries_ref->{$entry} eq '' ) {
-            $missing .= "  Empty   -> $entry\n";
-            $tempty++;
+            $stats->inc('empty');
+            $warnings->add('empty', $entry);
         }
     }
-
-    # calculate old keys in the file which are currently unused
-    my $unused = "";
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         unless ( defined $entries_ref->{$entry} ) {
-            $unused .= "  Unused  -> $entry\n";
-            $tunused++;
+            $stats->inc('unused');
+            $warnings->add('unused', $entry);
         }
     }
-
-    # calculate keys which have the same value in English
-    my $same = "";
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         if (   $lang_entries_ref->{$entry}
@@ -230,29 +195,26 @@ sub process_file {
             && $lang_entries_ref->{$entry} eq $english_entries_ref->{$entry} )
         {
             $same .= "  Same    -> $entry\n";
-            $tsame++;
+            $stats->inc('same');
+            $warnings->add('same',$entry);
         }
     }
 
-    my $nj           = "";
     my $hudson_regex = qr/Hudson/;
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         if (   $lang_entries_ref->{$entry}
             && $lang_entries_ref->{$entry} =~ $hudson_regex )
         {
-            $nj
-                .= "  Non Jenkins    -> $entry -> $lang_entries_ref->{$entry}\n";
-            $tnojenkins++;
+            $warnings->add('nonjenkins', "$entry -> $lang_entries_ref->{$entry}";
+            $stats->inc('nojenkins');
         }
     }
 
-    # Show Alerts
-    print "\nFile: $ofile\n$missing$unused$same$nj"
-        if ( $missing ne "" || $unused ne '' || $same ne '' || $nj ne '' );
+    $warnings->summary;
 
     # write new keys in our file adding the English translation as a reference
-    if ( $add && $missing ne "" ) {
+    if ( $warnings->ok_to_add ) {
         print_license( $ofile, read_license($DATA_START) )
             unless ( -f $ofile );
         open( my $out, '>>', $ofile ) or die "Cannot write to $ofile: $!\n";
@@ -287,11 +249,11 @@ sub process_file {
 
     # open the editor if the user has specified it and there are changes to
     # manage
-    system("$editor $ofile")
-        if ( $editor
-        && $add
-        && ( $missing ne "" || $same ne "" || $nj ne '' ) );
-
+#    system("$editor $ofile")
+#        if ( $editor
+#        && $add
+#        && ( $missing ne "" || $same ne "" || $nj ne '' ) );
+#
     # write new keys in our file adding the English translation as a reference
     if ( $remove && $unused ne "" ) {
         my $removed = remove_unused(
