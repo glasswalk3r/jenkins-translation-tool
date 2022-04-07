@@ -3,7 +3,7 @@ package Jenkins::i18n::Stats;
 use 5.014004;
 use strict;
 use warnings;
-use Hash::Util qw(lock_hash);
+use Hash::Util qw(lock_keys);
 use Carp qw(confess);
 
 our $VERSION = '0.01';
@@ -20,7 +20,7 @@ Jenkins::i18n::Stats - class to provide translations processing statistics
 
 =head1 DESCRIPTION
 
-C<Jenkins::i18n::Stats> 
+C<Jenkins::i18n::Stats>
 
 =head2 EXPORT
 
@@ -58,8 +58,8 @@ sub new {
         no_jenkins => 0
     };
 
-    lock_hash( %{$self} );
     bless $self, $class;
+    lock_keys( %{$self} );
     return $self;
 }
 
@@ -93,7 +93,8 @@ sub summary {
         my $pempty     = $self->{empty} / $self->{keys} * 100;
         my $psame      = $self->{same} / $self->{keys} * 100;
         my $pnojenkins = $self->{no_jenkins} / $self->{keys} * 100;
-    } else {
+    }
+    else {
         warn "Not a single key was processed\n";
     }
 

@@ -200,7 +200,7 @@ sub load_properties {
     my $file = shift;
 
     unless ( -f $file ) {
-        warn "File $file doesn't exist, skipping it...";
+        warn "File $file doesn't exist, skipping it...\n";
         return {};
     }
 

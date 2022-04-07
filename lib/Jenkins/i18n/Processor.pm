@@ -20,7 +20,7 @@ Jenkins::i18n::Process - process files based on CLI options
 
 =head1 DESCRIPTION
 
-C<Jenkins::i18n::Processor> 
+C<Jenkins::i18n::Processor>
 
 =head2 EXPORT
 
@@ -43,8 +43,8 @@ sub new {
         is_remove   => $is_remove,
         counter     => 0,
     };
-    lock_hash( %{$self} );
     bless $self, $class;
+    lock_hash( %{$self} );
     return $self;
 }
 

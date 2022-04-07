@@ -143,6 +143,7 @@ foreach my $file ( @{$files_ref} ) {
 # This is the main method with is run for each file
 sub process_file {
     my ( $file, $stats, $warnings, $processor ) = @_;
+    print "Working on $file\n";
 
     #  ofile -> output file in the current language,
     #  efile -> english file
@@ -238,7 +239,7 @@ sub process_file {
                         push( @todo, $entry );
                     }
 
-                    print $out join( '', @todo ), "\n";
+                    print $out (join( '', @todo )), "\n";
                     $processor->inc;
                 }
             }
@@ -266,10 +267,11 @@ sub process_file {
 }
 
 sub usage {
+    my $cli = 'jtt';
     print "
 CLI to implement internationalization for Jenkins
 
-Usage: $0 --lang=xx [options] [dir]
+Usage: $cli --lang=xx [options] [dir]
 
    dir:               -> source folder for searching files (default is the current directory)
    options:
@@ -286,13 +288,13 @@ Usage: $0 --lang=xx [options] [dir]
    Examples:
      - Look for Spanish files with incomplete keys in the 'main' folder and
        edit them with gedit:
-        $0 --lang=es --editor=gedit main
+        $cli --lang=es --editor=gedit main
      - Remove all orphaned keys from German files which are in the current
        file:
-        $0 --lang=de --remove .
+        $cli --lang=de --remove .
 
    You can also see aditional information from this program by using perldoc:
-     perldoc $0
+     perldoc $cli
 
 ";
 }

@@ -3,7 +3,7 @@ package Jenkins::i18n::Warnings;
 use 5.014004;
 use strict;
 use warnings;
-use Hash::Util qw(lock_hash);
+use Hash::Util qw(lock_keys);
 use Carp qw(confess);
 
 our $VERSION = '0.01';
@@ -20,7 +20,7 @@ Jenkins::i18n::Warnings - class to handle translation warnings
 
 =head1 DESCRIPTION
 
-C<Jenkins::i18n::Warnings> 
+C<Jenkins::i18n::Warnings>
 
 =head2 EXPORT
 
@@ -70,9 +70,9 @@ sub new {
         $self->{types}->{missing} = 'Missing';
     }
 
-    lock_hash( %{$self} );
     bless $self, $class;
     $self->reset;
+    lock_keys( %{$self} );
     return $self;
 }
 
