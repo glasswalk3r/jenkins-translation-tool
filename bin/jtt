@@ -90,10 +90,8 @@ use Jenkins::i18n (
 
 my $DATA_START = tell DATA;
 
-my (
-    $lang,  $editor,  $dir,,   $add,  $remove,
-    $reuse, $counter, $target, $help, $debug
-) = ( undef, undef, "./", 0, 0, 0, 0, "./", 0, 0 );
+my ( $lang, $editor, $dir,, $add, $remove, $counter, $target, $help, $debug )
+    = ( undef, undef, "./", 0, 0, 0, "./", 0, 0 );
 
 GetOptions(
     'help'     => \$help,
@@ -102,7 +100,6 @@ GetOptions(
     'dir=s'    => \$dir,
     'add'      => \$add,
     'remove'   => \$remove,
-    'reuse'    => \$reuse,
     'counter'  => \$counter,
     'target=s' => \$target,
     'debug'    => \$debug
@@ -119,22 +116,19 @@ my ( $tfiles, $tkeys, $tmissing, $tunused, $tempty, $tsame, $tnojenkins,
     $countervalue )
     = ( 0, 0, 0, 0, 0, 0, 0, 1 );
 
-## language parameter is mandatory and shouldn't be 'en'
+# language parameter is mandatory and shouldn't be 'en'
 unless ( ($lang) and ( $lang ne 'en' ) ) {
     usage();
     exit(1);
 }
 
 print "Searching for files ...\n";
-## look for Message.properties and *.jelly files in the provided folder
+
+# look for Message.properties and *.jelly files in the provided folder
 my $files_ref = find_files($dir);
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
 
-## load a cache with keys already translated to utilize in the case the same key
-## is used
-my %cache = loadAllTranslatedKeys( $reuse, $lang ) if ( $reuse && -e $reuse );
-
-## process each file
+# process each file
 foreach my $file ( @{$files_ref} ) {
     $tfiles++;
     process_file($file);
@@ -206,7 +200,6 @@ sub process_file {
     foreach my $entry ( keys %{$entries_ref} ) {
         $tkeys++;
         unless ( defined( $lang_entries_ref->{$entry} ) ) {
-            $entry   .= "=" . $cache{$entry} if ( exists( $cache{$entry} ) );
             $missing .= ( $add ? "  Adding " : "  Missing" ) . " -> $entry\n";
             $tmissing++;
             next;
@@ -270,25 +263,21 @@ sub process_file {
                 unless ( $lang_entries_ref->{$entry} ) {
                     print $out "$entry=";
 
-                    if ( defined( $cache{$entry} ) ) {
-                        print $out $cache{$entry} . "\n";
+                    if ($counter) {
+
+                        # add unique value for each added translation
+                        print $out "---TranslateMe "
+                            . $countervalue . "--- "
+                            . (
+                              $english_entries_ref->{$entry}
+                            ? $english_entries_ref->{$entry}
+                            : $entry
+                            ) . "\n";
                     }
                     else {
-                        if ($counter) {
-
-                            # add unique value for each added translation
-                            print $out "---TranslateMe "
-                                . $countervalue . "--- "
-                                . (
-                                  $english_entries_ref->{$entry}
-                                ? $english_entries_ref->{$entry}
-                                : $entry
-                                ) . "\n";
-                        }
-                        else {
-                            print $out "\n";
-                        }
+                        print $out "\n";
                     }
+
                     $countervalue++;
                 }
             }
@@ -315,22 +304,6 @@ sub process_file {
 
 }
 
-# Create a hash with all keys which exist and have an unique value
-sub loadAllTranslatedKeys {
-    my ( $dir, $lang, %ret ) = @_;
-    my @files = findTranslatableFiles($dir);
-    foreach (@files) {
-        s/(\.jelly)|(\.properties)/_$lang.properties/;
-        next unless ( -f $_ );
-        my ( %h, $k, $v ) = loadPropertiesFile($_);
-        while ( ( $k, $v ) = each(%h) ) {
-            $ret{$k} = "" if ( defined( $ret{$k} ) && $v ne $ret{$k} );
-            $ret{$k} = $v unless defined( $ret{$k} );
-        }
-    }
-    return %ret;
-}
-
 sub usage {
     print "
 CLI to implement internationalization for Jenkins
@@ -344,8 +317,6 @@ Usage: $0 --lang=xx [options] [dir]
      --add            -> optional, generate new files and add new keys to existing files if present
      --remove         -> optional, remove unused key/value pair for existing files if present
      --editor=command -> command to run over each updated file, implies --add if present
-     --reuse=folder   -> optional, load a cache with keys already translated in the folder provided in
-                         order to utilize them when the same key appears if present
      --counter        -> optional, to each translated key, unique value is added to easily identify match missing translation
                          with value in source code if present
      --target=folder  -> optional, target folder for writing files

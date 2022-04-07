@@ -12,7 +12,7 @@ use Jenkins::i18n::Properties;
 
 =head1 NAME
 
-Jenkins::i18n - functions for translation-tool
+Jenkins::i18n - functions for the jtt CLI
 
 =head1 SYNOPSIS
 
@@ -20,10 +20,9 @@ Jenkins::i18n - functions for translation-tool
 
 =head1 DESCRIPTION
 
-C<translation-tool.pl> is a CLI program used to help translating the Jenkins
-properties file.
+C<jtt> is a CLI program used to help translating the Jenkins properties file.
 
-This module implements the functions used by the CLI.
+This module implements some of the functions used by the CLI.
 
 =cut
 
@@ -161,11 +160,11 @@ Expects as parameters:
 
 =over
 
-=item *
+=item 1
 
 the complete path to the file
 
-=item *
+=item 2
 
 an array reference with the license text.
 
@@ -270,7 +269,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 =head1 COPYRIGHT AND LICENSE
 
 This software is copyright (c) 2022 of Alceu Rodrigues de Freitas Junior,
-arfreitas@cpan.org
+E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Jenkins Translation Tool project.
 
