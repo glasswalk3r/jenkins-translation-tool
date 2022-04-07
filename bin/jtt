@@ -89,11 +89,13 @@ use Jenkins::i18n (
     'load_jelly'
 );
 use Jenkins::i18n::Stats;
+use Jenkins::i18n::Warnings;
+use Jenkins::i18n::Processor;
 
-my $DATA_START = tell DATA;
+my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
 
-my ( $lang, $editor, $dir,, $add, $remove, $counter, $target, $help, $debug )
+my ( $lang, $editor, $dir, $add, $remove, $counter, $target, $help, $debug )
     = ( undef, undef, $current_dir, 0, 0, 0, $current_dir, 0, 0 );
 
 GetOptions(
@@ -126,23 +128,24 @@ print "Searching for files ...\n";
 # look for Message.properties and *.jelly files in the provided folder
 my $files_ref = find_files($dir);
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
-my $stats = Jenkins::i18n::Stats->new;
-my $warnings = Jenkins::I18n::Warnings->new({is_add => $add});
+my $stats    = Jenkins::i18n::Stats->new;
+my $warnings = Jenkins::i18n::Warnings->new( { is_add => $add } );
+my $processor
+    = Jenkins::i18n::Processor->new( $dir, $target, $counter, $remove );
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
     $stats->inc('files');
-    process_file($file, $stats, $warnings);
+    process_file( $file, $stats, $warnings, $processor );
     $warnings->reset;
 }
 
 # This is the main method with is run for each file
 sub process_file {
-    my ($file, $stats, $warnings) = @_;
+    my ( $file, $stats, $warnings, $processor ) = @_;
 
     #  ofile -> output file in the current language,
     #  efile -> english file
-    my $file = shift;
     my ( $ofile, $efile ) = ( $file, $file );
     $ofile =~ s/$dir/$target/;
     $ofile =~ s/(\.jelly)|(\.properties)/_$lang.properties/;
@@ -168,24 +171,24 @@ sub process_file {
 
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
- 
+
         # TODO: defined or exists?
         unless ( defined( $lang_entries_ref->{$entry} ) ) {
             $stats->inc('missing');
-            $warnings->add('missing', $entry);
+            $warnings->add( 'missing', $entry );
             next;
         }
 
         if ( $lang_entries_ref->{$entry} eq '' ) {
             $stats->inc('empty');
-            $warnings->add('empty', $entry);
+            $warnings->add( 'empty', $entry );
         }
     }
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         unless ( defined $entries_ref->{$entry} ) {
             $stats->inc('unused');
-            $warnings->add('unused', $entry);
+            $warnings->add( 'unused', $entry );
         }
     }
 
@@ -194,9 +197,8 @@ sub process_file {
             && $english_entries_ref->{$entry}
             && $lang_entries_ref->{$entry} eq $english_entries_ref->{$entry} )
         {
-            $same .= "  Same    -> $entry\n";
             $stats->inc('same');
-            $warnings->add('same',$entry);
+            $warnings->add( 'same', $entry );
         }
     }
 
@@ -206,7 +208,8 @@ sub process_file {
         if (   $lang_entries_ref->{$entry}
             && $lang_entries_ref->{$entry} =~ $hudson_regex )
         {
-            $warnings->add('nonjenkins', "$entry -> $lang_entries_ref->{$entry}";
+            $warnings->add( 'nonjenkins',
+                ( "$entry -> " . $lang_entries_ref->{$entry} ) );
             $stats->inc('nojenkins');
         }
     }
@@ -223,24 +226,20 @@ sub process_file {
             unless ( exists( $lang_entries_ref->{$entry} ) ) {
 
                 unless ( $lang_entries_ref->{$entry} ) {
-                    print $out "$entry=";
+                    my @todo = ( $entry, '=---TranslateMe ' );
+                    push( @todo, $processor->counter )
+                        if ( $processor->use_counter );
+                    push( @todo, '--- ' );
 
-                    if ($counter) {
-
-                        # add unique value for each added translation
-                        print $out "---TranslateMe "
-                            . $countervalue . "--- "
-                            . (
-                              $english_entries_ref->{$entry}
-                            ? $english_entries_ref->{$entry}
-                            : $entry
-                            ) . "\n";
+                    if ( $english_entries_ref->{$entry} ) {
+                        push( @todo, $english_entries_ref->{$entry} );
                     }
                     else {
-                        print $out "\n";
+                        push( @todo, $entry );
                     }
 
-                    $countervalue++;
+                    print $out join( '', @todo ), "\n";
+                    $processor->inc;
                 }
             }
         }
@@ -249,13 +248,13 @@ sub process_file {
 
     # open the editor if the user has specified it and there are changes to
     # manage
-#    system("$editor $ofile")
-#        if ( $editor
-#        && $add
-#        && ( $missing ne "" || $same ne "" || $nj ne '' ) );
-#
+    #    system("$editor $ofile")
+    #        if ( $editor
+    #        && $add
+    #        && ( $missing ne "" || $same ne "" || $nj ne '' ) );
+    #
     # write new keys in our file adding the English translation as a reference
-    if ( $remove && $unused ne "" ) {
+    if ( $processor->is_remove and $warnings->has_unused ) {
         my $removed = remove_unused(
             $ofile,
             Set::Tiny->new( keys( %{$entries_ref} ) ),

@@ -76,6 +76,11 @@ sub new {
     return $self;
 }
 
+sub has_unused {
+    my $self = shift;
+    return ( scalar( @{ $self->{unused} } ) ) > 0;
+}
+
 sub reset {
     my $self = shift;
 
