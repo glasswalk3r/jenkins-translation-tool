@@ -11,7 +11,6 @@ Makefile.PL
 MANIFEST
 perlcriticrc
 perltidyrc
-README
 README.md
 t/find_files.t
 t/Jenkins-i18n.t
