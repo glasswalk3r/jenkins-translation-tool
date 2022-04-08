@@ -17,6 +17,7 @@ t/Jenkins-i18n.t
 t/load_jelly.t
 t/load_properties.t
 t/removed_unused.t
+t/samples/config.jelly
 t/samples/message.jelly
 t/samples/Messages.properties
 t/samples/table_pt_BR.properties

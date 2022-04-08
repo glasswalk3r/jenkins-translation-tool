@@ -87,6 +87,67 @@ sub save {
     $self->_save($fh);
 }
 
+# this is to workaround a bug in perl 5.6.0 related to unicode
+my $bomre = eval(q< qr/^\\x{FEFF}/ >) || qr//;
+
+my %esc = (
+    "\n" => 'n',
+    "\r" => 'r',
+    "\t" => 't'
+);
+my %unesc = reverse %esc;
+
+sub unescape {
+    $_[0] =~ s/\\([tnr\\"' =:#!])|\\u([\da-fA-F]{4})/
+        defined $1 ? $unesc{$1}||$1 : chr hex $2 /ge;
+}
+
+sub process_line {
+    my ( $self, $file ) = @_;
+    my $line = $self->read_line($file);
+    defined $line or return undef;
+
+    # remove utf8 byte order mark
+    my $ln = $self->{last_line_number};
+    $line =~ s/$bomre// if $ln < 2;
+
+    # ignore comments
+    $line =~ /^\s*(\#|\!|$)/ and return 1;
+
+    # handle continuation lines
+    my @lines;
+    while ( $line =~ /(\\+)$/ and length($1) & 1 ) {
+        $line =~ s/\\$//;
+        push @lines, $line;
+        $line = $self->read_line($file);
+        $line = '' unless defined $line;
+        $line =~ s/^\s+//;
+    }
+    $line = join( '', @lines, $line ) if @lines;
+
+    my ( $key, $value ) = $line =~ /^
+                                  \s*
+                                  ((?:[^\s:=\\]|\\.)+)
+                                  \s*
+                                  [:=\s]
+                                  \s*
+                                  (.*)
+                                  $
+                                  /x
+        or $self->fail("invalid property line '$line'");
+
+    #unescape $key;
+    unescape $value;
+
+    $self->validate( $key, $value );
+
+    $self->{property_line_numbers}{$key} = $ln;
+    $self->{properties}{$key}            = $value;
+
+    return 1;
+}
+
+
 1;
 __END__
 
