@@ -128,7 +128,7 @@ as a filename prefix (before the file extension).
 Expects as parameter a complete path to a directory that might contain such
 files.
 
-Returns an array reference with the complete path to those files.
+Returns an sorted array reference with the complete path to those files.
 
 =cut
 
@@ -149,7 +149,8 @@ sub find_files {
         },
         $dir
     );
-    return \@files;
+    my @sorted = sort(@files);
+    return \@sorted;
 }
 
 =head2 print_license

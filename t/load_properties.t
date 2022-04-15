@@ -12,9 +12,10 @@ note("Using sample $sample");
 my $result = load_properties($sample);
 is( ref $result, 'HASH', 'result is a hash reference' );
 cmp_ok( scalar( keys( %{$result} ) ), '>', 0, 'result has some keys on it' );
+
 #is_deeply( $result, {}, 'got the expected content' )
 #    or diag( explain($result) );
-ok(exists($result->{'No\ updates'}),'can find expected complex key');
+ok( exists( $result->{'No\ updates'} ), 'can find expected complex key' );
 
 done_testing;
 

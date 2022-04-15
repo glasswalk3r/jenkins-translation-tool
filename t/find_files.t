@@ -19,8 +19,10 @@ note("Using $samples_dir as samples source");
 ok( $files_ref = find_files($samples_dir), 'find_files works' );
 is( ref($files_ref), 'ARRAY', 'find_files returns an array reference' );
 
-my $expected_ref
-    = [ 't/samples/Messages.properties', 't/samples/message.jelly', 't/samples/config.jelly' ];
+my $expected_ref = [
+    't/samples/Messages.properties', 't/samples/config.jelly',
+    't/samples/message.jelly'
+];
 is_deeply( $files_ref, $expected_ref,
     'find_files returns the expected files' )
     or diag( explain($files_ref) );
