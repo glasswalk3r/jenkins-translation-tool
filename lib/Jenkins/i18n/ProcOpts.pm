@@ -1,4 +1,4 @@
-package Jenkins::i18n::Processor;
+package Jenkins::i18n::ProcOpts;
 
 use 5.014004;
 use strict;
@@ -12,15 +12,16 @@ our $VERSION = '0.01';
 
 =head1 NAME
 
-Jenkins::i18n::Process - process files based on CLI options
+Jenkins::i18n::ProcOpts - process files definitions based on CLI options
 
 =head1 SYNOPSIS
 
-  use Jenkins::i18n::Processor;
+  use Jenkins::i18n::ProcOpts;
 
 =head1 DESCRIPTION
 
-C<Jenkins::i18n::Processor>
+This module define how the translation files should be processed based on the
+collected CLI options.
 
 =head2 EXPORT
 
@@ -50,7 +51,7 @@ sub new {
 
 =head2 inc
 
-Increments the processing counter.
+Increments the processed files counter.
 
 =cut
 
@@ -59,15 +60,34 @@ sub inc {
     $self->{counter}++;
 }
 
+=head2 use_counter
+
+Returns true (1) or false (0) if the counter usage is in place.
+
+=cut
+
 sub use_counter {
     my $self = shift;
     return $self->{use_counter};
 }
 
+=head2 counter
+
+Returns an integer representing the number translation files already processed.
+
+=cut
+
 sub counter {
     my $self = shift;
     return $self->{counter};
 }
+
+=head2 is_remove
+
+Returns true (1) or false (0) if the outdated translation files should be
+removed.
+
+=cut
 
 sub is_remove {
     my $self = shift;
