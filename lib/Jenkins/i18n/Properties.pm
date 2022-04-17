@@ -142,6 +142,7 @@ sub process_line {
         push @lines, $line;
         $line = $self->read_line($file);
         $line = '' unless defined $line;
+
         # TODO: replace this with String::Strip
         $line =~ s/^\s+//;
     }
