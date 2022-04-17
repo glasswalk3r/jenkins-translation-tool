@@ -6,7 +6,7 @@ unused keys for a given language.
 This is a fork from the original Perl script `translation-tool.pl` available at
 the [official Jenkins project](https://github.com/jenkinsci/jenkins).
 
-## Differences from the original script
+## Differences from the original tool
 
 ### No encoding conversion
 
@@ -28,6 +28,19 @@ Instructions to setup that will vary depending on the IDE, but here are some
 references:
 
 - [IntelliJ IDEA](https://www.jetbrains.com/help/idea/encoding.html#file-encoding-settings)
+
+### No editor execution
+
+`jtt` won't execute an given editor per missing file. This might be seems as a
+useful feature, but it can become a real issue if you have hundred of files to
+be open in a IDE.
+
+Different IDE's have different ways to handle that (like opening tabs), which
+might be useful per see, but stills can hog down your computer if too many are
+required.
+
+The suggested workflow is to check with Git (`git status`) what changes are
+being proposed and follow up from there.
 
 ## Install
 
