@@ -3,6 +3,7 @@ package Jenkins::i18n::Properties;
 use 5.014004;
 use strict;
 use warnings;
+use Carp qw(confess);
 use parent 'Config::Properties';
 
 our $VERSION = '0.01';
@@ -71,9 +72,9 @@ This method B<does not> closes the given filehand at the end of the writting.
 
 sub save {
     my ( $self, $fh, $license_ref ) = @_;
-    die "a file handle is a required parameter" unless ($fh);
-    die "license is a required parameter"       unless ($license_ref);
-    die "license must be an array reference"
+    confess "a file handle is a required parameter" unless ($fh);
+    confess "license is a required parameter"       unless ($license_ref);
+    confess "license must be an array reference"
         unless ( ref($license_ref) eq 'ARRAY' );
 
     foreach my $line ( @{$license_ref} ) {
@@ -87,29 +88,49 @@ sub save {
     $self->_save($fh);
 }
 
-# this is to workaround a bug in perl 5.6.0 related to unicode
-my $bomre = eval(q< qr/^\\x{FEFF}/ >) || qr//;
+=head2 unescape
 
-my %esc = (
-    "\n" => 'n',
-    "\r" => 'r',
-    "\t" => 't'
-);
-my %unesc = reverse %esc;
+Remove escape characters from a string.
+
+Expects a single string parameter, changing it in place.
+
+=cut
 
 sub unescape {
-    $_[0] =~ s/\\([tnr\\"' =:#!])|\\u([\da-fA-F]{4})/
+    my $text  = shift;
+    my %unesc = (
+        n => "\n",
+        r => "\r",
+        t => "\t",
+    );
+
+    $text =~ s/\\([tnr\\"' =:#!])|\\u([\da-fA-F]{4})/
         defined $1 ? $unesc{$1}||$1 : chr hex $2 /ge;
 }
+
+=head2 process_line
+
+This is a method overrided from the superclass.
+
+Process a single line retrieved from the Java properties file, saving the key
+and value internally.
+
+Returns C<1> if everything goes fine.
+
+This method was overrided to allow the key value to retain it's escape
+characters, as required by Jenkins translation files.
+
+Additionally, this method will not attempt to fix UTF-8 BOM from very old perl
+interpreters (version 5.6.0).
+
+=cut
 
 sub process_line {
     my ( $self, $file ) = @_;
     my $line = $self->read_line($file);
     defined $line or return undef;
 
-    # remove utf8 byte order mark
     my $ln = $self->{last_line_number};
-    $line =~ s/$bomre// if $ln < 2;
 
     # ignore comments
     $line =~ /^\s*(\#|\!|$)/ and return 1;
@@ -121,6 +142,7 @@ sub process_line {
         push @lines, $line;
         $line = $self->read_line($file);
         $line = '' unless defined $line;
+        # TODO: replace this with String::Strip
         $line =~ s/^\s+//;
     }
     $line = join( '', @lines, $line ) if @lines;
@@ -136,9 +158,7 @@ sub process_line {
                                   /x
         or $self->fail("invalid property line '$line'");
 
-    #unescape $key;
-    unescape $value;
-
+    unescape($value);
     $self->validate( $key, $value );
 
     $self->{property_line_numbers}{$key} = $ln;
