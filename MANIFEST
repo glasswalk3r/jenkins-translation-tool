@@ -2,7 +2,7 @@
 bin/jtt
 Changes
 lib/Jenkins/i18n.pm
-lib/Jenkins/i18n/Processor.pm
+lib/Jenkins/i18n/ProcOpts.pm
 lib/Jenkins/i18n/Properties.pm
 lib/Jenkins/i18n/Stats.pm
 lib/Jenkins/i18n/Warnings.pm
