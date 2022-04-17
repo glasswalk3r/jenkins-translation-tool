@@ -190,18 +190,35 @@ sub print_license {
 
 Loads the content of a Java Properties file into a hash.
 
-Expects as parameter the complete path to a Java Properties file.
+Expects as position parameters:
 
-Returns an hash reference. If the file doesn't exist, prints a warning to
-C<STDERR> and returns an empty hash reference.
+=over
+
+=item 1
+
+The complete path to a Java Properties file.
+
+=item 2
+
+True (1) or false (0) if a warn should be printed to C<STDERR> in case the file
+is missing.
+
+=back
+
+Returns an hash reference with the file content. If the file doesn't exist,
+returns an empty hash reference.
 
 =cut
 
 sub load_properties {
-    my $file = shift;
+    my ( $file, $must_warn ) = @_;
+    confess 'The complete path to the properties file is required'
+        unless ($file);
+    confess 'Must pass if a warning is required or not'
+        unless ( defined($must_warn) );
 
     unless ( -f $file ) {
-        warn "File $file doesn't exist, skipping it...\n";
+        warn "File $file doesn't exist, skipping it...\n" if ($must_warn);
         return {};
     }
 

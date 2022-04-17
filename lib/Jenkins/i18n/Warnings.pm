@@ -28,15 +28,7 @@ None by default.
 
 =head1 ATTRIBUTES
 
-All attributes are counters.
-
-=over
-
-=item *
-
-files: all the processed translation files.
-
-=back
+All attributes are "private".
 
 =head1 METHODS
 
@@ -44,18 +36,15 @@ files: all the processed translation files.
 
 Creates a new instance.
 
+Expects no parameters, returns a new instance.
+
 =cut
 
 sub new {
-    my ( $class, $opts_ref ) = @_;
-    confess 'must receive a hash reference as argument'
-        unless ( ref($opts_ref) eq 'HASH' );
-    confess 'is_add option in required'
-        unless ( exists( $opts_ref->{is_add} ) );
+    my $class = shift;
 
     my $self = {
-        is_add => $opts_ref->{is_add},
-        types  => {
+        types => {
             empty       => 'Empty',
             unused      => 'Unused',
             same        => 'Same',
@@ -76,22 +65,50 @@ sub new {
     return $self;
 }
 
-sub has_unused {
-    my $self = shift;
-    return ( scalar( @{ $self->{unused} } ) ) > 0;
-}
+=head2 add
 
-sub reset {
-    my $self = shift;
+Adds a new warnings.
 
-    foreach my $type ( keys %{ $self->{types} } ) {
-        $self->{$type} = [];
-    }
-}
+Each warning has a type, so the message must be identified. Valid types are:
 
-=head2 inc
+=over
 
-Increments a counter.
+=item *
+
+empty: translation files with keys that have an empty value.
+
+=item *
+
+unused: translation files with keys that are deprecated.
+
+=item *
+
+same: translation files that have keys with unstranslated text (still in
+English).
+
+=item *
+
+non_jenkins: translation files with keys that are part of Hudson, not Jenkins.
+
+=item *
+
+missing: translation files that are missing.
+
+=back
+
+Expects as positional parameters:
+
+=over
+
+=item 1
+
+The warning type.
+
+=item 2
+
+The warning message.
+
+=back
 
 =cut
 
@@ -102,21 +119,73 @@ sub add {
     push( @{ $self->{$item} }, $value );
 }
 
-sub summary {
+=head2 has_unused
+
+Returns true (1) or false (0) if there are unused warnings;
+
+=cut
+
+sub has_unused {
+    my $self = shift;
+    return ( scalar( @{ $self->{unused} } ) ) > 0;
+}
+
+=head2 reset
+
+Removes all captured warnings, bringing the instance to it's original state.
+
+=cut
+
+sub reset {
     my $self = shift;
 
-    while ( my ( $type, $desc ) = each( %{ $self->{types} } ) ) {
-        foreach my $item ( @{ $self->{$type} } ) {
-            warn "$desc '$item'\n";
+    foreach my $type ( keys %{ $self->{types} } ) {
+        $self->{$type} = [];
+    }
+}
+
+=head2 summary
+
+Prints to C<STDERR> all collected warnings so far, one per line.
+
+=cut
+
+sub summary {
+    my ( $self, $file ) = @_;
+
+    confess 'The path to the file translation file is required'
+        unless ( defined($file) );
+
+    my $has_any = 0;
+
+    foreach my $type ( keys( %{ $self->{types} } ) ) {
+        if ( scalar( @{ $self->{$type} } ) > 0 ) {
+            $has_any = 1;
+            last;
+        }
+    }
+
+    if ($has_any) {
+        print "All warnings for $file:\n";
+
+        while ( my ( $type, $desc ) = each( %{ $self->{types} } ) ) {
+            foreach my $item ( @{ $self->{$type} } ) {
+                warn "\t$desc '$item'\n";
+            }
         }
     }
 
 }
 
-sub ok_to_add {
-    my $self  = shift;
-    my $total = scalar( $self->{missing} );
-    return ( $self->{is_add} and ( $total == 0 ) );
+=head2 has_missing
+
+Returns true (1) or false (0) if there are missing warnings collected.
+
+=cut
+
+sub has_missing {
+    my $self = shift;
+    return ( scalar( $self->{missing} ) ) > 0;
 }
 
 1;
@@ -128,7 +197,11 @@ __END__
 
 =item *
 
-L<Config::Properties>
+L<Carp>
+
+=item *
+
+L<Hash::Util>
 
 =back
 

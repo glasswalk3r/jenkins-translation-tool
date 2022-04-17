@@ -90,18 +90,17 @@ use Jenkins::i18n (
 );
 use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
-use Jenkins::i18n::Processor;
+use Jenkins::i18n::ProcOpts;
 
 my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
 
-my ( $lang, $editor, $dir, $add, $remove, $counter, $target, $help, $debug )
-    = ( undef, undef, $current_dir, 0, 0, 0, $current_dir, 0, 0 );
+my ( $lang, $dir, $add, $remove, $counter, $target, $help, $debug )
+    = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0 );
 
 GetOptions(
     'help'     => \$help,
     'lang=s'   => \$lang,
-    'editor'   => \$editor,
     'dir=s'    => \$dir,
     'add'      => \$add,
     'remove'   => \$remove,
@@ -115,8 +114,6 @@ if ($help) {
     exit(0);
 }
 
-$add = 1 if ($editor);
-
 # language parameter is mandatory and shouldn't be 'en'
 unless ( $lang and ( $lang ne 'en' ) ) {
     usage();
@@ -129,9 +126,10 @@ print "Searching for files ...\n";
 my $files_ref = find_files($dir);
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
 my $stats    = Jenkins::i18n::Stats->new;
-my $warnings = Jenkins::i18n::Warnings->new( { is_add => $add } );
+my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
-    = Jenkins::i18n::Processor->new( $dir, $target, $counter, $remove );
+    = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
+    $debug );
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
@@ -140,11 +138,14 @@ foreach my $file ( @{$files_ref} ) {
     $warnings->reset;
 }
 
+$stats->summary;
+
 # This is the main method with is run for each file
 sub process_file {
     my ( $file, $stats, $warnings, $processor ) = @_;
-    print "Working on $file\n";
+    print "Working on $file\n" if ( $processor->is_debug );
 
+    # TODO: these paths manipulations might no be necessary in every case
     #  ofile -> output file in the current language,
     #  efile -> english file
     my ( $ofile, $efile ) = ( $file, $file );
@@ -160,21 +161,23 @@ sub process_file {
     # Read .jelly or Message.properties files, and fill a hash with the keys
     # found
     if ( $file =~ m/.jelly$/ ) {
-        $entries_ref         = load_jelly($file);
-        $english_entries_ref = load_properties($efile);
+        $entries_ref = load_jelly($file);
+        $english_entries_ref
+            = load_properties( $efile, $processor->is_debug );
     }
     else {
-        $english_entries_ref = load_properties($file);
+        $english_entries_ref = load_properties( $file, $processor->is_debug );
         $entries_ref         = $english_entries_ref;
     }
 
-    $lang_entries_ref = load_properties($ofile);
+    $lang_entries_ref = load_properties( $ofile, $processor->is_debug );
 
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
 
-        # TODO: defined or exists?
-        unless ( defined( $lang_entries_ref->{$entry} ) ) {
+        unless (( exists( $lang_entries_ref->{$entry} ) )
+            and ( defined( $lang_entries_ref->{$entry} ) ) )
+        {
             $stats->inc('missing');
             $warnings->add( 'missing', $entry );
             next;
@@ -215,10 +218,10 @@ sub process_file {
         }
     }
 
-    $warnings->summary;
+    $warnings->summary($ofile);
 
     # write new keys in our file adding the English translation as a reference
-    if ( $warnings->ok_to_add ) {
+    if ( $processor->is_add and $warnings->has_missing ) {
         print_license( $ofile, read_license($DATA_START) )
             unless ( -f $ofile );
         open( my $out, '>>', $ofile ) or die "Cannot write to $ofile: $!\n";
@@ -239,7 +242,7 @@ sub process_file {
                         push( @todo, $entry );
                     }
 
-                    print $out (join( '', @todo )), "\n";
+                    print $out ( join( '', @todo ) ), "\n";
                     $processor->inc;
                 }
             }
@@ -247,13 +250,6 @@ sub process_file {
         close($out);
     }
 
-    # open the editor if the user has specified it and there are changes to
-    # manage
-    #    system("$editor $ofile")
-    #        if ( $editor
-    #        && $add
-    #        && ( $missing ne "" || $same ne "" || $nj ne '' ) );
-    #
     # write new keys in our file adding the English translation as a reference
     if ( $processor->is_remove and $warnings->has_unused ) {
         my $removed = remove_unused(
@@ -279,16 +275,14 @@ Usage: $cli --lang=xx [options] [dir]
      --lang=xx        -> language code to use (it is mandatory and it has to be different to English)
      --add            -> optional, generate new files and add new keys to existing files if present
      --remove         -> optional, remove unused key/value pair for existing files if present
-     --editor=command -> command to run over each updated file, implies --add if present
      --counter        -> optional, to each translated key, unique value is added to easily identify match missing translation
                          with value in source code if present
      --target=folder  -> optional, target folder for writing files
      --debug          -> optional, print debugging messages to STDOUT when they are available
 
    Examples:
-     - Look for Spanish files with incomplete keys in the 'main' folder and
-       edit them with gedit:
-        $cli --lang=es --editor=gedit main
+     - Look for Spanish files with incomplete keys in the 'main' directory
+        $cli --lang=es
      - Remove all orphaned keys from German files which are in the current
        file:
         $cli --lang=de --remove .

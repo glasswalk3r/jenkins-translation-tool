@@ -34,7 +34,31 @@ All attributes are counters.
 
 =item *
 
-files: all the processed translation files.
+files: all the found translation files.
+
+=item *
+
+keys:
+
+=item *
+
+missing
+
+=item *
+
+unused
+
+=item *
+
+empty
+
+=item *
+
+same
+
+=item *
+
+no_jenkins
 
 =back
 
@@ -72,8 +96,16 @@ Increments a counter.
 sub inc {
     my ( $self, $item ) = @_;
     confess "item is a required parameter" unless ($item);
+    confess "there is no such counter '$item'"
+        unless ( exists( $self->{$item} ) );
     $self->{$item}++;
 }
+
+=head2 summary
+
+Prints to C<STDOUT> a summary of all statistics in text format.
+
+=cut
 
 sub summary {
     my $self = shift;
@@ -86,21 +118,47 @@ sub summary {
         - $self->{same}
         - $self->{no_jenkins};
 
+    my ( $pdone, $pmissing, $punused, $pempty, $psame, $pnojenkins );
+
     unless ( $self->{keys} == 0 ) {
-        my $pdone      = $done / $self->{keys} * 100;
-        my $pmissing   = $self->{missing} / $self->{keys} * 100;
-        my $punused    = $self->{unused} / $self->{keys} * 100;
-        my $pempty     = $self->{empty} / $self->{keys} * 100;
-        my $psame      = $self->{same} / $self->{keys} * 100;
-        my $pnojenkins = $self->{no_jenkins} / $self->{keys} * 100;
+        $pdone    = $done / $self->{keys} * 100;
+        $pmissing = $self->{missing} / $self->{keys} * 100;
+        $punused  = $self->{unused} / $self->{keys} * 100;
+
+        $pempty     = $self->{empty} / $self->{keys} * 100;
+        $psame      = $self->{same} / $self->{keys} * 100;
+        $pnojenkins = $self->{no_jenkins} / $self->{keys} * 100;
     }
     else {
         warn "Not a single key was processed\n";
     }
 
-#printf
-#"\nTOTAL: Files: %d Keys: %d Done: %d(%.2f%%)\n       Missing: %d(%.2f%%) Orphan: %d(%.2f%%) Empty: %d(%.2f%%) Same: %d(%.2f%%) NoJenkins: %d(%.2f%%)\n\n",
-#    (@formatParameters);
+    format STDOUT_TOP =
+
+         Translation Status
+
+    Status         Total      %
+    -----------------------------
+.
+
+    format STDOUT =
+    @<<<<<<<<<<    @<<<<    @<<<<
+    'Done', $done, $pdone
+    @<<<<<<<<<<    @<<<<    @<<<<
+    'Missing', $self->{missing}, $pmissing
+    @<<<<<<<<<<    @<<<<    @<<<<
+    'Orphan', $self->{unused}, $punused
+    @<<<<<<<<<<    @<<<<    @<<<<
+    'Empty', $self->{empty}, $pempty
+    @<<<<<<<<<<    @<<<<    @<<<<
+    'Same', $self->{same}, $psame
+    @<<<<<<<<<<    @<<<<    @<<<<
+    'No Jenkins', $self->{no_jenkins}, $pnojenkins
+
+.
+
+    write;
+    print 'Total of files: ', $self->{files}, "\n";
 }
 
 1;

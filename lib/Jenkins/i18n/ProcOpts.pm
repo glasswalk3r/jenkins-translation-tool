@@ -33,17 +33,55 @@ None by default.
 
 Creates a new instance.
 
+Expects as positional parameters:
+
+=over
+
+=item 1
+
+A string representing the path where the files should be reviewed.
+
+=item 2
+
+A string representing the path where the processed files should be written to.
+
+=item 3
+
+A boolean (in Perl terms) if a counter is to be used.
+
+=item 4
+
+A boolean (in Perl terms) if deprecated files should be removed.
+
+=item 5
+
+A boolean (in Perl terms) if new files should be added.
+
+=item 6
+
+A boolean (in Perl terms) if CLI is running in debug mode.
+
+=back
+
 =cut
 
 sub new {
-    my ( $class, $source_dir, $target_dir, $use_counter, $is_remove ) = @_;
+    my (
+        $class,     $source_dir, $target_dir, $use_counter,
+        $is_remove, $is_add,     $is_debug
+    ) = @_;
     my $self = {
         source_dir  => $source_dir,
         target_dir  => $target_dir,
         use_counter => $use_counter,
         is_remove   => $is_remove,
+        is_add      => $is_add,
+        is_debug    => $is_debug,
         counter     => 0,
     };
+    confess
+'Removing or adding translation files are excluding operations, they cannot be both true at the same time'
+        if ( $is_remove and $is_add );
     bless $self, $class;
     lock_hash( %{$self} );
     return $self;
@@ -92,6 +130,28 @@ removed.
 sub is_remove {
     my $self = shift;
     return $self->{is_remove};
+}
+
+=head2 is_add
+
+Returns true (1) or false (0) if the translation files should be added.
+
+=cut
+
+sub is_add {
+    my $self = shift;
+    return $self->{is_add};
+}
+
+=head2 is_debug
+
+Returns true (1) or false (0) if the CLI is running in debug mode.
+
+=cut
+
+sub is_debug {
+    my $self = shift;
+    return $self->{is_debug};
 }
 
 1;
