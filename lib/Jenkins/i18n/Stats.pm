@@ -38,27 +38,31 @@ files: all the found translation files.
 
 =item *
 
-keys:
+keys: all the keys loaded from the properties files.
 
 =item *
 
-missing
+missing: all keys that are missing after comparing a language to the original
+in English,
 
 =item *
 
-unused
+unused: all keys that are available in the a language but not in the original
+English.
 
 =item *
 
-empty
+empty: all keys in the language that are available but doesn't actually have a
+translated value.
 
 =item *
 
-same
+same: all keys that have the same values as the original in English. Not
+necessarilly an error.
 
 =item *
 
-no_jenkins
+no_jenkins: all keys that are not related to Jenkins, but coming from Hudson.
 
 =back
 
@@ -99,6 +103,7 @@ sub inc {
     confess "there is no such counter '$item'"
         unless ( exists( $self->{$item} ) );
     $self->{$item}++;
+    return 1;
 }
 
 =head2 summary
@@ -128,12 +133,7 @@ sub summary {
         $pempty     = $self->{empty} / $self->{keys} * 100;
         $psame      = $self->{same} / $self->{keys} * 100;
         $pnojenkins = $self->{no_jenkins} / $self->{keys} * 100;
-    }
-    else {
-        warn "Not a single key was processed\n";
-    }
-
-    format STDOUT_TOP =
+        format STDOUT_TOP =
 
          Translation Status
 
@@ -141,7 +141,7 @@ sub summary {
     -----------------------------
 .
 
-    format STDOUT =
+        format STDOUT =
     @<<<<<<<<<<    @<<<<    @<<<<
     'Done', $done, $pdone
     @<<<<<<<<<<    @<<<<    @<<<<
@@ -157,8 +157,12 @@ sub summary {
 
 .
 
-    write;
-    print 'Total of files: ', $self->{files}, "\n";
+        write;
+        print 'Total of files: ', $self->{files}, "\n";
+    }
+    else {
+        warn "Not a single key was processed\n";
+    }
 }
 
 1;
