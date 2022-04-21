@@ -113,10 +113,13 @@ The warning message.
 =cut
 
 sub add {
-    my ( $self, $item, $value ) = @_;
-    confess "item is a required parameter"  unless ($item);
+    my ( $self, $type, $value ) = @_;
+    confess "type is a required parameter" unless ($type);
+    confess "'$type' is not a valid type"
+        unless ( exists( $self->{types}->{$type} ) );
     confess "value is a required parameter" unless ($value);
-    push( @{ $self->{$item} }, $value );
+    push( @{ $self->{$type} }, $value );
+    return 1;
 }
 
 =head2 has_unused
@@ -126,8 +129,10 @@ Returns true (1) or false (0) if there are unused warnings;
 =cut
 
 sub has_unused {
-    my $self = shift;
-    return ( scalar( @{ $self->{unused} } ) ) > 0;
+    my $self  = shift;
+    my $total = scalar( @{ $self->{unused} } );
+    return 1 if ( $total > 0 );
+    return 0;
 }
 
 =head2 reset
@@ -142,11 +147,15 @@ sub reset {
     foreach my $type ( keys %{ $self->{types} } ) {
         $self->{$type} = [];
     }
+
+    return 1;
 }
 
 =head2 summary
 
 Prints to C<STDERR> all collected warnings so far, one per line.
+
+Expects as parameter the translation file being processed.
 
 =cut
 
@@ -165,16 +174,22 @@ sub summary {
         }
     }
 
-    if ($has_any) {
-        print "All warnings for $file:\n";
+    # required for predicable warnings order
+    my @sorted_types = sort( keys( %{ $self->{types} } ) );
 
-        while ( my ( $type, $desc ) = each( %{ $self->{types} } ) ) {
+    if ($has_any) {
+        warn "Got warnings for $file:\n";
+
+        foreach my $type (@sorted_types) {
             foreach my $item ( @{ $self->{$type} } ) {
-                warn "\t$desc '$item'\n";
+                warn "\t$self->{types}->{$type} '$item'\n";
             }
         }
+
+        return 1;
     }
 
+    return 0;
 }
 
 =head2 has_missing
@@ -184,8 +199,10 @@ Returns true (1) or false (0) if there are missing warnings collected.
 =cut
 
 sub has_missing {
-    my $self = shift;
-    return ( scalar( $self->{missing} ) ) > 0;
+    my $self  = shift;
+    my $total = scalar( @{ $self->{missing} } );
+    return 1 if ( $total > 0 );
+    return 0;
 }
 
 1;
