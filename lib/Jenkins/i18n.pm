@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Carp qw(confess);
 use File::Find;
+use File::Basename;
 
 use Jenkins::i18n::Properties;
 
@@ -175,8 +176,8 @@ an array reference with the license text.
 
 sub print_license {
     my ( $file, $data_ref ) = @_;
-    my $dir_name = dirname($file);
-    mkpath($dir_name) unless ( -d $dir_name );
+    my ( $filename, $dirs, $suffix ) = fileparse($file);
+    mkpath($dirs) unless ( -d $dirs );
     open( my $out, ">" . $file ) or die "Cannot write to $file: $!\n";
 
     foreach my $line ( @{$data_ref} ) {
