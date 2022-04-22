@@ -116,7 +116,7 @@ sub inc {
 
 =head2 use_counter
 
-Returns true (1) or false (0) if the counter usage is in place.
+Returns true (1) or false (0) if the processed counter is in use.
 
 =cut
 
@@ -127,7 +127,8 @@ sub use_counter {
 
 =head2 counter
 
-Returns an integer representing the number translation files already processed.
+Returns an integer representing the number of translation files already
+processed.
 
 =cut
 
