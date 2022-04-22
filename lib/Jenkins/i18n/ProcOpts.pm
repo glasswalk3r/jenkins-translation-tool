@@ -3,7 +3,7 @@ package Jenkins::i18n::ProcOpts;
 use 5.014004;
 use strict;
 use warnings;
-use Hash::Util qw(lock_hash);
+use Hash::Util qw(lock_hash unlock_value lock_value);
 use Carp qw(confess);
 
 our $VERSION = '0.01';
@@ -79,6 +79,12 @@ sub new {
         is_debug    => $is_debug,
         counter     => 0,
     };
+
+    foreach my $attrib ( keys( %{$self} ) ) {
+        confess "must receive $attrib as parameter"
+            unless ( defined( $self->{$attrib} ) );
+    }
+
     confess
 'Removing or adding translation files are excluding operations, they cannot be both true at the same time'
         if ( $is_remove and $is_add );
@@ -95,7 +101,17 @@ Increments the processed files counter.
 
 sub inc {
     my $self = shift;
-    $self->{counter}++;
+
+    if ( $self->use_counter ) {
+        my $attrib = 'counter';
+        unlock_value( %{$self}, $attrib );
+        $self->{$attrib}++;
+        lock_value( %{$self}, $attrib );
+        return 1;
+    }
+
+    warn "Useless invocation of inc with file counter disabled\n";
+    return 0;
 }
 
 =head2 use_counter
