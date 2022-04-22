@@ -7,7 +7,8 @@ use Test::Warnings qw(:all);
 use Jenkins::i18n::Warnings;
 
 my $class = 'Jenkins::i18n::Warnings';
-can_ok( $class, qw(new add has_unused reset summary has_missing) );
+can_ok( $class,
+    qw(new add has_unused reset summary has_missing _relative_path) );
 my $instance = Jenkins::i18n::Warnings->new;
 ok( $instance, 'got an instance' );
 isa_ok( $instance, $class );

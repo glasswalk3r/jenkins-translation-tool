@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Hash::Util qw(lock_keys);
 use Carp qw(confess);
+use Cwd;
 
 our $VERSION = '0.01';
 
@@ -178,7 +179,8 @@ sub summary {
     my @sorted_types = sort( keys( %{ $self->{types} } ) );
 
     if ($has_any) {
-        warn "Got warnings for $file:\n";
+        my $rel = $self->_relative_path($file);
+        warn "Got warnings for $rel:\n";
 
         foreach my $type (@sorted_types) {
             foreach my $item ( @{ $self->{$type} } ) {
@@ -190,6 +192,17 @@ sub summary {
     }
 
     return 0;
+}
+
+sub _relative_path {
+    my ( $self, $file_path ) = @_;
+    my $curr_dir = getcwd;
+
+    if ( $file_path =~ /^$curr_dir/ ) {
+        $file_path =~ s#$curr_dir/##;
+    }
+
+    return $file_path;
 }
 
 =head2 has_missing
