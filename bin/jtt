@@ -265,7 +265,7 @@ sub process_file {
 sub usage {
     my $cli = 'jtt';
     print "
-CLI to implement internationalization for Jenkins
+CLI to help internationalization for Jenkins
 
 Usage: $cli --lang=xx [options] [dir]
 
