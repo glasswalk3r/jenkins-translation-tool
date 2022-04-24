@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use File::Spec;
 use File::Copy;
 use Set::Tiny 0.04;
@@ -58,6 +58,8 @@ is( read_and_count($tmp_props),
     'resulting properties file has the expected number of properties' );
 my $backup = "$tmp_props.bak";
 ok( -s $backup, "File has a backup as expected at $backup" );
+is( invalid_count($tmp_props),
+    0, 'There are no invalid Java entities in the updated properties file' );
 
 # Text::Wrap will change the way text is saved, so counting the properties
 sub read_and_count {
@@ -65,6 +67,21 @@ sub read_and_count {
     my $props_handler = Jenkins::i18n::Properties->new( file => $file );
     my @names         = $props_handler->propertyNames;
     return scalar(@names);
+}
+
+sub invalid_count {
+    my $file          = shift;
+    my $invalid_regex = qr/\\u/;
+    my $count         = 0;
+    open( my $in, '<', $file ) or die "Cannot read $file: $!";
+    while (<$in>) {
+        if (/$invalid_regex/) {
+            my @total = /$invalid_regex/g;
+            $count += scalar(@total);
+        }
+    }
+    close($in);
+    return $count;
 }
 
 # -*- mode: perl -*-
