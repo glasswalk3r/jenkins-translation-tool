@@ -294,12 +294,10 @@ Fork to C<jtt>: Alceu Rodrigues de Freitas Junior.
 
 =back
 
-=head1 LICENSE
-
-Copyright and licence
+=head1 COPYRIGHT AND LICENSE
 
 This software is copyright (c) 2022 of Alceu Rodrigues de Freitas Junior,
-arfreitas@cpan.org
+E<lt>arfreitas@cpan.orgE<gt>.
 
 This file is part of Jenkins Translation Tool project.
 
