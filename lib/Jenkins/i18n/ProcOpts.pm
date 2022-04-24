@@ -234,7 +234,7 @@ The path to the English file location.
 =cut
 
 sub define_files {
-    my ( $self, $file ) = @_;
+    my ( $self,           $file )         = @_;
     my ( $curr_lang_file, $english_file ) = ( $file, $file );
     $curr_lang_file =~ s/$self->{source_dir}/$self->{target_dir}/;
     my $lang = '_' . $self->{language} . '.properties';
