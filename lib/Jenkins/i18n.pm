@@ -106,18 +106,18 @@ sub remove_unused {
         $props_handler = Jenkins::i18n::Properties->new( file => $file );
     }
 
-    my %curr_props = $props_handler->properties;
-    my $removed    = 0;
+    my $curr_keys = Set::Tiny->new( $props_handler->propertyNames );
+    my $to_delete = $curr_keys->difference($keys);
 
-    foreach my $key ( keys(%curr_props) ) {
-        $removed++ unless ( $keys->has($key) );
+    foreach my $key ( $to_delete->members ) {
+        $props_handler->deleteProperty($key);
     }
 
     open( my $out, '>', $file ) or confess "Cannot write to $file: $!\n";
     $props_handler->save( $out, $license_ref );
     close($out) or confess "Cannot save $file: $!\n";
 
-    return $removed;
+    return $to_delete->size;
 }
 
 =head2 find_files
