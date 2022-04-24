@@ -231,6 +231,10 @@ sub load_properties {
 
 Fill a hash with key/1 pairs from a C<.jelly> file.
 
+Expects as parameter the path to a Jelly file.
+
+Returns a hash reference.
+
 =cut
 
 sub load_jelly {

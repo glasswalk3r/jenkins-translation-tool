@@ -55,7 +55,7 @@ my $stats    = Jenkins::i18n::Stats->new;
 my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
     = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
-    $debug );
+    $debug, $lang );
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
@@ -70,14 +70,7 @@ $stats->summary;
 sub process_file {
     my ( $file, $stats, $warnings, $processor ) = @_;
     print "Working on $file\n" if ( $processor->is_debug );
-
-    # TODO: these paths manipulations might no be necessary in every case
-    #  ofile -> output file in the current language,
-    #  efile -> english file
-    my ( $ofile, $efile ) = ( $file, $file );
-    $ofile =~ s/$dir/$target/;
-    $ofile =~ s/(\.jelly)|(\.properties)/_$lang.properties/;
-    $efile =~ s/(\.jelly)/.properties/;
+    my ( $curr_lang_file, $english_file ) = $processor->define_files($file);
 
    # entries_ref -> keys used in jelly or Message.properties files
    # lang_entries_ref -> keys/values in the desired language which are already
@@ -89,14 +82,15 @@ sub process_file {
     if ( $file =~ m/.jelly$/ ) {
         $entries_ref = load_jelly($file);
         $english_entries_ref
-            = load_properties( $efile, $processor->is_debug );
+            = load_properties( $english_file, $processor->is_debug );
     }
     else {
         $english_entries_ref = load_properties( $file, $processor->is_debug );
         $entries_ref         = $english_entries_ref;
     }
 
-    $lang_entries_ref = load_properties( $ofile, $processor->is_debug );
+    $lang_entries_ref
+        = load_properties( $curr_lang_file, $processor->is_debug );
 
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
@@ -144,20 +138,21 @@ sub process_file {
         }
     }
 
-    $warnings->summary($ofile);
+    $warnings->summary($curr_lang_file);
 
     # write new keys in our file adding the English translation as a reference
     if ( $processor->is_add and $warnings->has_missing ) {
-        print_license( $ofile, read_license($DATA_START) )
-            unless ( -f $ofile );
-        open( my $out, '>>', $ofile ) or die "Cannot write to $ofile: $!\n";
+        print_license( $curr_lang_file, read_license($DATA_START) )
+            unless ( -f $curr_lang_file );
+        open( my $out, '>>', $curr_lang_file )
+            or die "Cannot write to $curr_lang_file: $!\n";
 
         foreach my $entry ( keys %{$entries_ref} ) {
             unless ( exists( $lang_entries_ref->{$entry} ) ) {
 
                 unless ( $lang_entries_ref->{$entry} ) {
                     my @todo = ( $entry, '=---TranslateMe ' );
-                    push( @todo, $processor->counter )
+                    push( @todo, $processor->get_counter )
                         if ( $processor->use_counter );
                     push( @todo, '--- ' );
 
@@ -169,7 +164,7 @@ sub process_file {
                     }
 
                     print $out ( join( '', @todo ) ), "\n";
-                    $processor->inc;
+                    $processor->inc if ( $processor->use_counter );
                 }
             }
         }
@@ -179,7 +174,7 @@ sub process_file {
     # write new keys in our file adding the English translation as a reference
     if ( $processor->is_remove and $warnings->has_unused ) {
         my $removed = remove_unused(
-            $ofile,
+            $curr_lang_file,
             Set::Tiny->new( keys( %{$entries_ref} ) ),
             read_license($DATA_START)
         );

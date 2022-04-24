@@ -61,15 +61,18 @@ A boolean (in Perl terms) if new files should be added.
 
 A boolean (in Perl terms) if CLI is running in debug mode.
 
+=item 7
+
+A string identifying the chosen language for processing.
+
 =back
 
 =cut
 
 sub new {
-    my (
-        $class,     $source_dir, $target_dir, $use_counter,
-        $is_remove, $is_add,     $is_debug
-    ) = @_;
+    my ( $class, $source_dir, $target_dir, $use_counter,
+        $is_remove, $is_add, $is_debug, $lang )
+        = @_;
     my $self = {
         source_dir  => $source_dir,
         target_dir  => $target_dir,
@@ -77,6 +80,7 @@ sub new {
         is_remove   => $is_remove,
         is_add      => $is_add,
         is_debug    => $is_debug,
+        language    => $lang,
         counter     => 0,
     };
 
@@ -91,6 +95,40 @@ sub new {
     bless $self, $class;
     lock_hash( %{$self} );
     return $self;
+}
+
+=head2 get_language
+
+Returns a string identifying the chosen language for processing.
+
+=cut
+
+sub get_language {
+    my $self = shift;
+    return $self->{language};
+}
+
+=head2 get_source
+
+Returns string of the path where the translation files should be looked for.
+
+=cut
+
+sub get_source {
+    my $self = shift;
+    return $self->{source_dir};
+}
+
+=head2 get_target
+
+Returns a string of the path where the reviewed translation files should be
+written to.
+
+=cut
+
+sub get_target {
+    my $self = shift;
+    return $self->{target_dir};
 }
 
 =head2 inc
@@ -125,14 +163,14 @@ sub use_counter {
     return $self->{use_counter};
 }
 
-=head2 counter
+=head2 get_counter
 
 Returns an integer representing the number of translation files already
 processed.
 
 =cut
 
-sub counter {
+sub get_counter {
     my $self = shift;
     return $self->{counter};
 }
@@ -169,6 +207,23 @@ Returns true (1) or false (0) if the CLI is running in debug mode.
 sub is_debug {
     my $self = shift;
     return $self->{is_debug};
+}
+
+=head2 define_files
+
+Based on complete translation file input, defines the resulting translation
+files and their locations.
+
+=cut
+
+sub define_files {
+    my ( $self, $file ) = @_;
+    my ( $curr_lang_file, $english_file ) = ( $file, $file );
+    $curr_lang_file =~ s/$self->{source_dir}/$self->{target_dir}/;
+    my $lang = '_' . $self->{language} . '.properties';
+    $curr_lang_file =~ s/(\.jelly)|(\.properties)/$lang/;
+    $english_file   =~ s/(\.jelly)/.properties/;
+    return ( $curr_lang_file, $english_file );
 }
 
 1;
