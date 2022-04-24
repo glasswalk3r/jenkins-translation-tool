@@ -211,8 +211,25 @@ sub is_debug {
 
 =head2 define_files
 
-Based on complete translation file input, defines the resulting translation
-files and their locations.
+Based on complete path to a translation file as input, defines the resulting
+expected translation files and their locations, even if they don't yet exist.
+
+Expects as parameter the complete path to a translation file (Jelly or Java
+Properties).
+
+Returns an array with the following elements:
+
+=over
+
+=item 1
+
+The path to the current language file location.
+
+=item 2
+
+The path to the English file location.
+
+=back
 
 =cut
 
