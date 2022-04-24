@@ -4,6 +4,7 @@ use 5.014004;
 use strict;
 use warnings;
 use Carp qw(confess);
+use Text::Wrap;
 use parent 'Config::Properties';
 
 our $VERSION = '0.01';
@@ -166,6 +167,43 @@ sub process_line {
     $self->{properties}{$key}            = $value;
 
     return 1;
+}
+
+sub _save {
+    my ( $self, $file ) = @_;
+
+    local ($Text::Wrap::separator) = " \\\n";
+    local ($Text::Wrap::unexpand)  = undef;
+    local ($Text::Wrap::huge)      = 'overflow';
+    local ($Text::Wrap::break)     = qr/(?<!\\) (?! )/;
+
+    foreach ( $self->_sort_keys( keys %{ $self->{properties} } ) ) {
+        my $key   = $_;
+        my $value = $self->{properties}{$key};
+        escape_key($key);
+
+        $file->print(
+            Text::Wrap::wrap(
+                "", "    ", sprintf( $self->{'format'}, $key, $value )
+            ),
+            "\n"
+        );
+    }
+}
+
+my %esc = (
+    "\n" => 'n',
+    "\r" => 'r',
+    "\t" => 't'
+);
+
+sub escape_key {
+    $_[0] =~ s{([\t\n\r\\"' =:])}{
+        "\\".($esc{$1}||$1) }ge;
+    $_[0] =~ s{([^\x20-\x7e])}{sprintf "\\u%04x", ord $1}ge;
+    $_[0] =~ s/^ /\\ /;
+    $_[0] =~ s/^([#!])/\\$1/;
+    $_[0] =~ s/(?<!\\)((?:\\\\)*) $/$1\\ /;
 }
 
 1;

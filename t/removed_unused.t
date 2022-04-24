@@ -40,6 +40,7 @@ my $original_properties = read_and_count($tmp_props);
 my $expected_removed    = $original_properties - $wanted->size;
 
 note('With a license');
+# due Text::Wrap, this license will be put into a single line
 my @license = qw(This is a license something);
 $removed = remove_unused( $tmp_props, $wanted, \@license );
 is( $removed, $expected_removed, 'got the expected number of keys removed' );
@@ -71,7 +72,7 @@ sub read_and_count {
 
 sub invalid_count {
     my $file          = shift;
-    my $invalid_regex = qr/\\u/;
+    my $invalid_regex = qr/\\\\u/;
     my $count         = 0;
     open( my $in, '<', $file ) or die "Cannot read $file: $!";
     while (<$in>) {
