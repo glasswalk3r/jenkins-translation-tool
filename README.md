@@ -8,6 +8,74 @@ the [official Jenkins project](https://github.com/jenkinsci/jenkins).
 
 ## Differences from the original tool
 
+### New features
+
+#### Improved online documentation
+
+```
+$ jtt --help
+Usage:
+      jtt --lang=xx
+
+      options:
+        --dir=directory    -> source folder for searching files, optional
+        --help             -> print this help message and exits
+        --man              -> provides this CLI manpage and exits
+        --lang=xx          -> language code to use
+        --add              -> optional, generate new files and add new keys to existing
+                              files if present
+        --remove           -> optional, remove unused key/value pair for existing files
+                              if present
+        --counter          -> optional, to each translated key, unique value is added
+                              to easily identify match missing translation with value
+                              in source code if present
+        --target=directory -> optional, target directory for writing files
+        --debug            -> optional, print debugging messages to STDOUT when they
+                              are available
+```
+
+#### Better formatted output
+
+Warnings per translation file:
+
+```
+Got warnings for core/src/main/resources/hudson/model/Messages_pt_BR.properties:
+	Empty 'HealthReport.EmptyString'
+	Empty 'MultiStageTimeSeries.EMPTY_STRING'
+	Same 'UpdateCenter.PluginCategory.maven'
+	Same 'UpdateCenter.PluginCategory.devops'
+	Same 'UpdateCenter.PluginCategory.devsecops'
+	Same 'JDK.DisplayName'
+	Same 'Hudson.DisplayName'
+	Same 'Item.Permissions.Title'
+	Same 'Queue.Unknown'
+	Same 'Run.Summary.Unknown'
+```
+
+This is a translation summary:
+
+```
+         Translation Status
+
+    Status         Total      %
+    -----------------------------
+    Done           2044     98.64
+    Missing        0        0
+    Orphan         5        0.241
+    Empty          2        0.096
+    Same           21       1.013
+    No Jenkins     0        0
+```
+
+### No caching
+
+The script `translation-tool.pl` tried to implement some sort of processing
+results caching, but that didn't work very well. On the other hand, the script
+should procedure results reasonably fast (~2,7s in a Intel i5-7200U 2.50GHz
+with encrypted disk), so it's not an issue per see not having it.
+
+Cache may be implemented latter again.
+
 ### No encoding conversion
 
 The script `translation-tool.pl` tried to convert Jenkins properties from
@@ -31,7 +99,7 @@ references:
 
 ### No editor execution
 
-`jtt` won't execute an given editor per missing file. This might be seems as a
+`jtt` won't execute a given editor per missing file. This might be seems as a
 useful feature, but it can become a real issue if you have hundred of files to
 be open in a IDE.
 
@@ -41,6 +109,21 @@ required.
 
 The suggested workflow is to check with Git (`git status`) what changes are
 being proposed and follow up from there.
+
+### Reviewed command line options
+
+Command line options are now are properly handled with parsing and validation.
+
+### Always includes original sentences
+
+When there are new keys to translate, the original English text will always be
+included with the `---TranslateMe` prefix (which must be removed, obviously).
+
+## See also
+
+- A suggested [workflow](Workflow.md) to carry on translations with `jtt`.
+- A bit of [history](History.md) that influenced how design decisions were
+made to this project.
 
 ## Install
 
@@ -113,15 +196,70 @@ Files=2, Tests=16,  0 wallclock secs ( 0.02 usr  0.00 sys +  0.14 cusr  0.01 csy
 Result: PASS
 ```
 
+You can also get testing coverage if `Devel::Cover` is installed:
+
+```
+~/jenkins-translation-tool$ perl Makefile.PL
+Generating a Unix-style Makefile
+Writing Makefile for Jenkins::i18n
+Writing MYMETA.yml and MYMETA.json
+
+~/jenkins-translation-tool$ make
+Skip blib/lib/Jenkins/bench.pl (unchanged)
+Skip blib/lib/Jenkins/i18n/Warnings.pm (unchanged)
+Skip blib/lib/Jenkins/i18n/Stats.pm (unchanged)
+Skip blib/lib/Jenkins/i18n/ProcOpts.pm (unchanged)
+Skip blib/lib/Jenkins/i18n.pm (unchanged)
+cp lib/Jenkins/i18n/Properties.pm blib/lib/Jenkins/i18n/Properties.pm
+cp bin/jtt blib/script/jtt
+"perl" -MExtUtils::MY -e 'MY->fixin(shift)' -- blib/script/jtt
+Manifying 1 pod document
+Manifying 5 pod documents
+
+jenkins-translation-tool$ cover -test
+Deleting database ~/jenkins-translation-tool/cover_db
+cover: running make test "OPTIMIZE=-O0 -fprofile-arcs -ftest-coverage" "OTHERLDFLAGS=-fprofile-arcs -ftest-coverage"
+PERL_DL_NONLAZY=1 "perl" "-MExtUtils::Command::MM" "-MTest::Harness" "-e" "undef *Test::Harness::Switches; test_harness(0, 'blib/lib', 'blib/arch')" t/*.t
+t/find_files.t ....... ok   
+t/Jenkins-i18n.t ..... ok   
+t/load_jelly.t ....... ok   
+t/load_properties.t .. ok   
+t/proc_opts.t ........ ok    
+t/removed_unused.t ... ok     
+t/stats.t ............ ok     
+t/warnings.t ......... ok     
+All tests successful.
+Files=8, Tests=99,  3 wallclock secs ( 0.04 usr  0.00 sys +  2.53 cusr  0.17 csys =  2.74 CPU)
+Result: PASS
+Reading database from ~/jenkins-translation-tool/cover_db
+
+
+---------------------------- ------ ------ ------ ------ ------ ------ ------
+File                           stmt   bran   cond    sub    pod   time  total
+---------------------------- ------ ------ ------ ------ ------ ------ ------
+blib/lib/Jenkins/i18n.pm       91.2   78.5   66.6   92.8  100.0   72.3   87.3
+.../Jenkins/i18n/ProcOpts.pm  100.0  100.0   66.6  100.0  100.0    7.5   98.9
+...enkins/i18n/Properties.pm  100.0   66.6   33.3  100.0  100.0    6.2   88.3
+...lib/Jenkins/i18n/Stats.pm   78.9   83.3    n/a  100.0  100.0    6.8   83.6
+.../Jenkins/i18n/Warnings.pm   97.3   90.0    n/a  100.0  100.0    6.9   96.4
+Total                          94.2   80.4   53.3   98.3  100.0  100.0   91.3
+---------------------------- ------ ------ ------ ------ ------ ------ ------
+
+
+HTML output written to ~/jenkins-translation-tool/cover_db/coverage.html
+done.
+```
+
 ## References
 
 - [Jenkins Internationalization](https://www.jenkins.io/doc/developer/internationalization/)
 - [i18n](https://wiki.mageia.org/en/What_is_i18n,_what_is_l10n)
+- [Online convertion of UTF-8 to Java entities](http://itpro.cz/juniconv/)
 
 ## Copyright and licence
 
 This software is copyright (c) 2022 of Alceu Rodrigues de Freitas Junior,
-arfreitas@cpan.org
+arfreitas at cpan.org
 
 This file is part of Jenkins Translation Tool project.
 
