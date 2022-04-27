@@ -74,7 +74,7 @@ results caching, but that didn't work very well. On the other hand, the script
 should procedure results reasonably fast (~2,7s in a Intel i5-7200U 2.50GHz
 with encrypted disk), so it's not an issue per see not having it.
 
-Cache may be implemented latter again.
+Cache may be implemented in the future again.
 
 ### No encoding conversion
 
@@ -87,15 +87,8 @@ internationalization, and all translations mus be stored in files that uses
 ISO-8859-1 encoding and any characters that are not supported by it must be
 converted to Java entities.
 
-The best way to achieve that is to use your preferred IDE configured to receive
-UTF-8 as input and automatically convert to ISO-8859-1 with Java entities: that
-you save you from a lot of headaches, leaving you to worry about normally
-editing the files.
-
-Instructions to setup that will vary depending on the IDE, but here are some
-references:
-
-- [IntelliJ IDEA](https://www.jetbrains.com/help/idea/encoding.html#file-encoding-settings)
+The best way to achieve that is to use your preferred IDE, see
+[the suggested workflow](Workflow.md) for more details on that.
 
 ### No editor execution
 
@@ -128,6 +121,9 @@ made to this project.
 ## Install
 
 ### TLDR
+
+You will need to have Perl version 5.14 or higher available in your system,
+which should be default for UNIX-like operational systems like Linux and MacOSX.
 
   ```
   cpan Jenkins::i18n
