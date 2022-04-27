@@ -4,6 +4,10 @@ Under construction.
 
 ## Install and configure an Java IDE
 
+Jenkins use Java Properties and Jelly files to implemented internationalization,
+and all translations mus be stored in files that uses ISO-8859-1 encoding and
+any characters that are not supported by it must be converted to Java entities.
+
 Use your preferred IDE configured to receive UTF-8 as input and automatically
 convert to ISO-8859-1 with Java entities: that you save you from a lot of
 headaches, leaving you to worry about normally editing the files.

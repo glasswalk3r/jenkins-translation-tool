@@ -100,9 +100,6 @@ Different IDE's have different ways to handle that (like opening tabs), which
 might be useful per see, but stills can hog down your computer if too many are
 required.
 
-The suggested workflow is to check with Git (`git status`) what changes are
-being proposed and follow up from there.
-
 ### Reviewed command line options
 
 Command line options are now are properly handled with parsing and validation.
