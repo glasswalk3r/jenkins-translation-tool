@@ -82,11 +82,6 @@ The script `translation-tool.pl` tried to convert Jenkins properties from
 ASCII to UTF-8 and vice-versa using regular expressions. No need to tell how
 well that worked.
 
-In fact, Jenkins use Java Properties and Jelly files to implemented
-internationalization, and all translations mus be stored in files that uses
-ISO-8859-1 encoding and any characters that are not supported by it must be
-converted to Java entities.
-
 The best way to achieve that is to use your preferred IDE, see
 [the suggested workflow](Workflow.md) for more details on that.
 
