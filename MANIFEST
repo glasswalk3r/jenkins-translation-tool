@@ -1,6 +1,5 @@
 bin/jtt
 Changes
-History.md
 lib/Jenkins/i18n.pm
 lib/Jenkins/i18n/ProcOpts.pm
 lib/Jenkins/i18n/Properties.pm
@@ -25,6 +24,5 @@ t/samples/table_pt_BR.properties
 t/stats.t
 t/warnings.t
 tidyall.ini
-Workflow.md
 xt/pod-coverage.t
 xt/pod.t
