@@ -1,6 +1,6 @@
-.tidyall.d/cache/e/e1493a09988fdea2c47b8b41e181a4f0470fe22d.dat
 bin/jtt
 Changes
+History.md
 lib/Jenkins/i18n.pm
 lib/Jenkins/i18n/ProcOpts.pm
 lib/Jenkins/i18n/Properties.pm
@@ -16,9 +16,15 @@ t/find_files.t
 t/Jenkins-i18n.t
 t/load_jelly.t
 t/load_properties.t
+t/proc_opts.t
 t/removed_unused.t
 t/samples/config.jelly
 t/samples/message.jelly
 t/samples/Messages.properties
 t/samples/table_pt_BR.properties
+t/stats.t
+t/warnings.t
 tidyall.ini
+Workflow.md
+xt/pod-coverage.t
+xt/pod.t
