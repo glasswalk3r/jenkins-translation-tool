@@ -23,8 +23,8 @@ use Jenkins::i18n::ProcOpts;
 my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
 
-my ( $lang, $dir, $add, $remove, $counter, $target, $help, $debug, $man )
-    = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0 );
+my ( $lang, $dir, $add, $remove, $counter, $target, $help, $debug, $man, $search )
+    = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0, undef );
 
 GetOptions(
     'help'     => \$help,
@@ -36,6 +36,7 @@ GetOptions(
     'target=s' => \$target,
     'debug'    => \$debug,
     'man'      => \$man,
+    'search=s' => \$search
 ) or pod2usage( -exitval => 1 );
 
 pod2usage( -exitval => 0, -verbose => 0 ) if ($help);
@@ -55,7 +56,7 @@ my $stats    = Jenkins::i18n::Stats->new;
 my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
     = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
-    $debug, $lang );
+    $debug, $lang, $search );
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
@@ -96,6 +97,7 @@ sub process_file {
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
 
+        # TODO: skip increasing missing if operatio is to delete those
         unless (( exists( $lang_entries_ref->{$entry} ) )
             and ( defined( $lang_entries_ref->{$entry} ) ) )
         {
