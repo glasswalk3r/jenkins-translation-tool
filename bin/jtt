@@ -99,6 +99,7 @@ sub process_file {
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
 
+        # TODO: skip increasing missing if operatio is to delete those
         unless (( exists( $lang_entries_ref->{$entry} ) )
             and ( defined( $lang_entries_ref->{$entry} ) ) )
         {

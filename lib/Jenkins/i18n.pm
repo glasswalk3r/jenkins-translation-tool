@@ -237,6 +237,7 @@ Returns a hash reference.
 
 =cut
 
+# TODO: replace regex with XML parser
 sub load_jelly {
     my $file = shift;
     my %ret;
