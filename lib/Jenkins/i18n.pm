@@ -33,7 +33,7 @@ our @EXPORT_OK = (
     'load_jelly'
 );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head2 EXPORT
 
