@@ -23,8 +23,8 @@ use Jenkins::i18n::ProcOpts;
 my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
 
-my ( $lang, $dir, $add, $remove, $counter, $target, $help, $debug, $man, $search )
-    = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0, undef );
+my ( $lang, $dir, $add, $remove, $counter, $target, $help, $debug, $man )
+    = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0 );
 
 GetOptions(
     'help'     => \$help,
@@ -35,8 +35,7 @@ GetOptions(
     'counter'  => \$counter,
     'target=s' => \$target,
     'debug'    => \$debug,
-    'man'      => \$man,
-    'search=s' => \$search
+    'man'      => \$man
 ) or pod2usage( -exitval => 1 );
 
 pod2usage( -exitval => 0, -verbose => 0 ) if ($help);
@@ -56,7 +55,7 @@ my $stats    = Jenkins::i18n::Stats->new;
 my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
     = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
-    $debug, $lang, $search );
+    $debug, $lang );
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
