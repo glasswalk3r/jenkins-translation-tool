@@ -8,6 +8,14 @@ the [official Jenkins project](https://github.com/jenkinsci/jenkins).
 
 ## Differences from the original tool
 
+`jtt` is:
+
+- faster
+- uses less memory
+- better adapted to development best practices
+
+When compared to `translation-tool.pl`.
+
 ### New features
 
 #### Improved online documentation
