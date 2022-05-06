@@ -23,8 +23,10 @@ use Jenkins::i18n::ProcOpts;
 my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
 
-my ( $lang, $dir, $add, $remove, $counter, $target, $help, $debug, $man )
-    = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0 );
+my (
+    $lang,   $dir,  $add,   $remove, $counter,
+    $target, $help, $debug, $man,    $search
+) = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0, undef );
 
 GetOptions(
     'help'     => \$help,
@@ -36,6 +38,7 @@ GetOptions(
     'target=s' => \$target,
     'debug'    => \$debug,
     'man'      => \$man,
+    'search=s' => \$search
 ) or pod2usage( -exitval => 1 );
 
 pod2usage( -exitval => 0, -verbose => 0 ) if ($help);
@@ -55,7 +58,7 @@ my $stats    = Jenkins::i18n::Stats->new;
 my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
     = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
-    $debug, $lang );
+    $debug, $lang, $search );
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
@@ -141,6 +144,20 @@ sub process_file {
         }
     }
 
+    if ( $processor->is_to_search ) {
+        my $term = $processor->search_term;
+
+        foreach my $entry ( keys %{$lang_entries_ref} ) {
+            if (   $lang_entries_ref->{$entry}
+                && $lang_entries_ref->{$entry} =~ $term )
+            {
+                $warnings->add( 'search_found',
+                    ( "$entry -> " . $lang_entries_ref->{$entry} ) );
+            }
+        }
+
+    }
+
     $warnings->summary($curr_lang_file);
 
     # write new keys in our file adding the English translation as a reference
@@ -216,6 +233,8 @@ jtt - CLI to help internationalization for Jenkins
                           to easily identify match missing translation with value
                           in source code if present
     --target=directory -> optional, target directory for writing files
+    --search=regex     -> optional, search for a given regular expression in the
+                          translation content
     --debug            -> optional, print debugging messages to STDOUT when they
                           are available
 
