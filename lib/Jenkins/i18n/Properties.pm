@@ -6,7 +6,7 @@ use warnings;
 use Carp qw(confess);
 use parent 'Config::Properties';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =pod
 
