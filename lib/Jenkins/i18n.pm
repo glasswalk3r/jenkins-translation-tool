@@ -6,6 +6,7 @@ use warnings;
 use Carp qw(confess);
 use File::Find;
 use File::Basename;
+use Config;
 
 use Jenkins::i18n::Properties;
 
@@ -33,7 +34,7 @@ our @EXPORT_OK = (
     'load_jelly'
 );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head2 EXPORT
 
@@ -141,12 +142,26 @@ sub find_files {
         unless ( ref($dir) eq '' );
     confess "Directory $dir must exists" unless ( -d $dir );
     my @files;
+
+    # BUGFIX: File::Find::name is not returning with MS Windows separator
+    my $is_windows = 0;
+    my $separator;
+
+    if ( $Config{osname} eq 'MSWin32' ) {
+        $is_windows = 1;
+        $separator  = qr#/#;
+    }
+
     find(
         sub {
             my $file = $File::Find::name;
-            push( @files, $file )
-                if ( $file !~ m#(/src/test/)|(/target/)#
-                && $file =~ /(Messages.properties)$|(.*\.jelly)$/ );
+            if (   $file !~ m#(/src/test/)|(/target/)#
+                && $file =~ /(Messages.properties)$|(.*\.jelly)$/ )
+            {
+                $file =~ s#$separator#\\# if ($is_windows);
+                push( @files, $file );
+
+            }
         },
         $dir
     );
