@@ -55,6 +55,25 @@ property).
 
 Nothing really to be done in this case, except accept the change with `git add`.
 
+## Compile the Jenkins source code
+
+It's a good idea to recompile the Jenkins source code after changing the
+properties, just to be sure everything is fine.
+
+While is always possible to make it with your preferred IDE, using the Maven
+CLI might be the easiest way.
+
+First download Maven from https://maven.apache.org/download.cgi.
+
+Then unpack it and follow the instructions detailed in the `README.txt` file.
+
+Once you finish the setup, just move to the Jenkins checkout out Git repository
+and execute:
+
+```
+mvn -am -pl war,bom -DskipTests -Dspotbugs.skip -Dspotless.check.skip clean install
+```
+
 ## Tips
 
 ### Working in a shell

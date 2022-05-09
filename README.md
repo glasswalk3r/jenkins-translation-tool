@@ -18,6 +18,14 @@ When compared to `translation-tool.pl`.
 
 ### New features
 
+#### Search for terms on translated values
+
+For use cases that you need to find a term that is used amount the translated
+files, you can use the `--search` options to do that.
+
+If the term is found, warnings are emitted, per file, every time the term was
+matched.
+
 #### Improved online documentation
 
 ```
