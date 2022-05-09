@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Hash::Util qw(lock_hash unlock_value lock_value);
 use Carp qw(confess);
+use File::Spec;
 
 our $VERSION = '0.03';
 
@@ -88,6 +89,7 @@ sub new {
         is_debug    => $is_debug,
         language    => $lang,
         counter     => 0,
+        ext_sep     => qr/\./
     };
 
     foreach my $attrib ( keys( %{$self} ) ) {
@@ -274,13 +276,38 @@ The path to the English file location.
 =cut
 
 sub define_files {
-    my ( $self,           $file )         = @_;
-    my ( $curr_lang_file, $english_file ) = ( $file, $file );
-    $curr_lang_file =~ s/$self->{source_dir}/$self->{target_dir}/;
-    my $lang = '_' . $self->{language} . '.properties';
-    $curr_lang_file =~ s/(\.jelly)|(\.properties)/$lang/;
-    $english_file   =~ s/(\.jelly)/.properties/;
-    return ( $curr_lang_file, $english_file );
+    my ( $self, $file ) = @_;
+    my $filename = ( File::Spec->splitpath($file) )[2];
+    my ( $filename_prefix, $filename_ext )
+        = split( $self->{ext_sep}, $filename );
+    my ( $curr_lang_file, $english_file );
+
+    if ( $filename_ext eq 'jelly' ) {
+        $curr_lang_file
+            = $filename_prefix . '_' . $self->{language} . '.properties';
+        $english_file = "$filename_prefix.properties";
+    }
+    elsif ( $filename_ext eq 'properties' ) {
+        $curr_lang_file
+            = $filename_prefix . '_' . $self->{language} . '.properties';
+        $english_file = $filename;
+    }
+    else {
+        confess "Unexpected file extension '$filename_ext'";
+    }
+
+    if ( $self->{source_dir} eq $self->{target_dir} ) {
+        return (
+            File::Spec->catfile( $self->{source_dir}, $curr_lang_file ),
+            File::Spec->catfile( $self->{source_dir}, $english_file )
+        );
+    }
+
+    return (
+        File::Spec->catfile( $self->{target_dir}, $curr_lang_file ),
+        File::Spec->catfile( $self->{source_dir}, $english_file )
+    );
+
 }
 
 1;

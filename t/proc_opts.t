@@ -3,6 +3,7 @@ use strict;
 use Test::More tests => 27;
 use Test::Exception;
 use Test::Warnings qw(:all);
+use File::Spec;
 
 use Jenkins::i18n::ProcOpts;
 
@@ -22,9 +23,9 @@ my @attribs = sort( keys( %{$instance} ) );
 is_deeply(
     \@attribs,
     [
-        'counter',   'has_search', 'is_add',     'is_debug',
-        'is_remove', 'language',   'source_dir', 'target_dir',
-        'use_counter'
+        'counter',    'ext_sep',   'has_search', 'is_add',
+        'is_debug',   'is_remove', 'language',   'source_dir',
+        'target_dir', 'use_counter'
     ],
     'instance has the expected attributes'
 );
@@ -40,15 +41,19 @@ is( $instance->get_source,   '/foo',  'get_source() works as expected' );
 is( $instance->get_target,   '/bar',  'get_target() works as expected' );
 is( $instance->is_to_search, 0,       'is_to_search() works as expected' );
 
-foreach my $target (qw(/foo /bar)) {
-    note("Using $target as target directory");
-    my $instance2 = Jenkins::i18n::ProcOpts->new( '/foo', $target, 1, 0, 0, 0,
-        'pt_BR' );
+my $dir1 = File::Spec->catdir( '', 'foo' );
+my $dir2 = File::Spec->catdir( '', 'bar' );
+
+foreach my $target ( ( $dir1, $dir2 ) ) {
+    note("Using $target as target directory, source as $dir1");
+    my $instance2
+        = Jenkins::i18n::ProcOpts->new( $dir1, $target, 1, 0, 0, 0, 'pt_BR' );
+    my $file_in  = File::Spec->catfile( $dir1,   'message.properties' );
+    my $file_out = File::Spec->catfile( $target, 'message_pt_BR.properties' );
     my %expected_files = (
-        '/foo/message.properties' =>
-            [ "$target/message_pt_BR.properties", '/foo/message.properties' ],
-        '/foo/message.jelly' =>
-            [ "$target/message_pt_BR.properties", '/foo/message.properties' ],
+        $file_in => [ $file_out, $file_in ],
+        File::Spec->catfile( $dir1, 'message.jelly' ) =>
+            [ $file_out, $file_in ],
     );
 
     foreach my $file_path ( keys(%expected_files) ) {
