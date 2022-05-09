@@ -33,7 +33,7 @@ our @EXPORT_OK = (
     'load_jelly'
 );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head2 EXPORT
 
@@ -237,6 +237,7 @@ Returns a hash reference.
 
 =cut
 
+# TODO: replace regex with XML parser
 sub load_jelly {
     my $file = shift;
     my %ret;

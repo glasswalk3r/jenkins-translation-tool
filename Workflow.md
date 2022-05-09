@@ -74,3 +74,28 @@ and execute:
 mvn -am -pl war,bom -DskipTests -Dspotbugs.skip -Dspotless.check.skip clean install
 ```
 
+## Tips
+
+### Working in a shell
+
+If you're using a UNIX shell (Bash, Korn, etc), you can use programs like `find`
+and `grep` to search files that requires some fixes.
+
+For example, let's suppose I know there are remaining "build" English words
+spread over Brazilian Portuguese translation properties, so I can do:
+
+```
+$ find core/src -type f -name '*pt_BR.properties' | xargs grep -F build -l -i > tmp.txt
+```
+
+That creates the text file `tmp.txt` (that I **won't** commit to the repository)
+which I can use as a "working queue", since now I will need to review each file.
+
+The next sequence of commands will "pop out" the first filename to `STDOUT`
+from the file, allowing me to open the file in the IDE, edit it, then move
+to the next file in the "queue".
+
+```
+head -1 tmp.txt && sed -i -e '1d' tmp.txt
+```
+
