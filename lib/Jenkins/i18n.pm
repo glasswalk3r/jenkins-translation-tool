@@ -5,7 +5,6 @@ use strict;
 use warnings;
 use Carp qw(confess);
 use File::Find;
-use File::Basename;
 use Config;
 
 use Jenkins::i18n::Properties;
