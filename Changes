@@ -1,5 +1,9 @@
 Revision history for Perl extension Jenkins::i18n.
 
+0.03  Mon May  9 00:29 2002
+    - Fixed bugs regarding paths in MS Windows
+    - Refactored code to improve performance
+
 0.02  Fri May  6 20:49 2022
     - Added the --search feature
     - Fixed bug for tests running on MS Windows
