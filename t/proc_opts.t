@@ -23,8 +23,9 @@ my @attribs = sort( keys( %{$instance} ) );
 is_deeply(
     \@attribs,
     [
-        'counter',   'ext_sep',  'has_search', 'is_add',     'is_debug',
-        'is_remove', 'language', 'source_dir', 'target_dir', 'use_counter'
+        'counter',    'ext_sep',   'has_search', 'is_add',
+        'is_debug',   'is_remove', 'language',   'source_dir',
+        'target_dir', 'use_counter'
     ],
     'instance has the expected attributes'
 );
