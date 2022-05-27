@@ -81,6 +81,14 @@ mvn -am -pl war,bom -DskipTests -Dspotbugs.skip -Dspotless.check.skip clean inst
 If you're using a UNIX shell (Bash, Korn, etc), you can use programs like `find`
 and `grep` to search files that requires some fixes.
 
+---
+**Note**
+
+Since version 0.03, `jtt` includes the `--search` option to do something like
+that.
+
+---
+
 For example, let's suppose I know there are remaining "build" English words
 spread over Brazilian Portuguese translation properties, so I can do:
 
@@ -98,4 +106,3 @@ to the next file in the "queue".
 ```
 head -1 tmp.txt && sed -i -e '1d' tmp.txt
 ```
-
