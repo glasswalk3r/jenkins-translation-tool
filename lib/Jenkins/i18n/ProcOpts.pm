@@ -7,7 +7,7 @@ use Hash::Util qw(lock_hash unlock_value lock_value);
 use Carp qw(confess);
 use File::Spec;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =pod
 
