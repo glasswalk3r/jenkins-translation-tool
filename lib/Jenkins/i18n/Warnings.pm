@@ -50,7 +50,8 @@ sub new {
             unused       => 'Unused',
             same         => 'Same',
             non_jenkins  => 'Non Jenkins',
-            search_found => 'Found match on given term'
+            search_found => 'Found match on given term',
+            ignored      => 'Ignored due expected value'
         }
     };
 
