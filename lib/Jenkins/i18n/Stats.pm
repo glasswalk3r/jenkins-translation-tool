@@ -112,21 +112,28 @@ Prints to C<STDOUT> a summary of all statistics in text format.
 
 =cut
 
+sub _done {
+    my $self = shift;
+    return (  $self->{keys}
+            - $self->{missing}
+            - $self->{unused}
+            - $self->{empty}
+            - $self->{same}
+            - $self->{no_jenkins} );
+}
+
+sub perc_done {
+    my $self = shift;
+    return ( ( $self->_done / $self->{keys} ) * 100 );
+}
+
 sub summary {
     my $self = shift;
-
-    my $done
-        = $self->{keys}
-        - $self->{missing}
-        - $self->{unused}
-        - $self->{empty}
-        - $self->{same}
-        - $self->{no_jenkins};
-
+    my $done = $self->_done;
     my ( $pdone, $pmissing, $punused, $pempty, $psame, $pnojenkins );
 
     unless ( $self->{keys} == 0 ) {
-        $pdone    = $done / $self->{keys} * 100;
+        $pdone    = $self->perc_done;
         $pmissing = $self->{missing} / $self->{keys} * 100;
         $punused  = $self->{unused} / $self->{keys} * 100;
 

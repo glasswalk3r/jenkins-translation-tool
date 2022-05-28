@@ -14,7 +14,7 @@ use Pod::Usage qw(pod2usage);
 
 use Jenkins::i18n (
     'remove_unused', 'find_files', 'print_license', 'load_properties',
-    'load_jelly'
+    'load_jelly',    'find_langs'
 );
 use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
@@ -27,12 +27,13 @@ my $current_dir = getcwd;
 
 my (
     $lang, $dir,   $add, $remove, $counter, $target,
-    $help, $debug, $man, $search, $version
-) = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0, undef, 0 );
+    $help, $debug, $man, $search, $version, $all_langs
+) = ( undef, $current_dir, 0, 0, 0, $current_dir, 0, 0, 0, undef, 0, 0 );
 
 GetOptions(
     'help'     => \$help,
     'version'  => \$version,
+    'all'      => \$all_langs,
     'lang=s'   => \$lang,
     'dir=s'    => \$dir,
     'add'      => \$add,
@@ -52,11 +53,7 @@ if ($version) {
 pod2usage( -exitval => 0, -verbose => 0 ) if ($help);
 pod2usage( -exitval => 0, -verbose => 2 ) if ($man);
 
-# language parameter is mandatory and shouldn't be 'en'
-unless ( $lang and ( $lang ne 'en' ) ) {
-    pod2usage( -exitval => 1, -verbose => 1 );
-}
-
+# TODO: move this variables to a module
 my $empty_regex  = qr/empty/i;
 my $jelly_regex  = qr/.jelly$/;
 my $hudson_regex = qr/Hudson/;
@@ -71,11 +68,51 @@ my $ignore_same  = Set::Tiny->new(
         'https://www.jenkins.io/redirect/search-box'
     )
 );
+
+if ($all_langs) {
+    my $files_ref = find_files($dir);
+    my $all_langs = find_langs($dir);
+    my $warnings  = Jenkins::i18n::Warnings->new(1);
+    my %results;
+
+    foreach my $lang ( $all_langs->members ) {
+        my $processor
+            = Jenkins::i18n::ProcOpts->new( $dir, $target, 0, 0, 0, $debug,
+            $lang, undef );
+        my $stats = Jenkins::i18n::Stats->new;
+
+        # process each file
+        foreach my $file ( @{$files_ref} ) {
+            $stats->inc('files');
+            process_file( $file, $stats, $warnings, $processor );
+            $warnings->reset;
+        }
+
+        $results{ $stats->perc_done } = $lang;
+
+        #print $lang, " -> ", $stats->perc_done, "\n";
+    }
+
+    my @sorted = sort { $b <=> $a } keys(%results);
+
+    foreach my $val (@sorted) {
+        print $results{$val}, ' -> ', $val, "\n";
+    }
+
+    exit(0);
+}
+
+# language parameter is mandatory and shouldn't be 'en'
+unless ( $lang and ( $lang ne 'en' ) ) {
+    pod2usage( -exitval => 1, -verbose => 1 );
+}
+
 print "Searching for files ...\n";
 
 # look for Message.properties and *.jelly files in the provided folder
 my $files_ref = find_files($dir);
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
+
 my $stats    = Jenkins::i18n::Stats->new;
 my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
@@ -166,9 +203,9 @@ sub process_file {
         if (   $lang_entries_ref->{$entry}
             && $lang_entries_ref->{$entry} =~ $hudson_regex )
         {
-            $warnings->add( 'nonjenkins',
+            $warnings->add( 'non_jenkins',
                 ( "$entry -> " . $lang_entries_ref->{$entry} ) );
-            $stats->inc('nojenkins');
+            $stats->inc('no_jenkins');
         }
     }
 

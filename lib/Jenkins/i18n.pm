@@ -7,6 +7,7 @@ use Carp qw(confess);
 use File::Find;
 use File::Spec;
 use Config;
+use Set::Tiny;
 
 use Jenkins::i18n::Properties;
 
@@ -31,7 +32,7 @@ This module implements some of the functions used by the CLI.
 use Exporter 'import';
 our @EXPORT_OK = (
     'remove_unused', 'find_files', 'print_license', 'load_properties',
-    'load_jelly'
+    'load_jelly',    'find_langs'
 );
 
 our $VERSION = '0.04';
@@ -154,7 +155,7 @@ sub find_files {
         unless ($dir);
     confess 'Must provide a string as directory, not a reference'
         unless ( ref($dir) eq '' );
-    die "Directory $dir must exists" unless ( -d $dir );
+    confess "Directory $dir must exists" unless ( -d $dir );
     my @files;
 
     # BUGFIX: File::Find::name is not returning with MS Windows separator
@@ -176,6 +177,42 @@ sub find_files {
     );
     my @sorted = sort(@files);
     return \@sorted;
+}
+
+my $regex = qr/_([a-z]{2})(_[A-Z]{2})?\.properties$/;
+
+sub find_langs {
+    my $dir = shift;
+    confess 'Must provide a string, invalid directory parameter'
+        unless ($dir);
+    confess 'Must provide a string as directory, not a reference'
+        unless ( ref($dir) eq '' );
+    confess "Directory $dir must exists" unless ( -d $dir );
+    my $langs = Set::Tiny->new;
+
+    find(
+        sub {
+            my $file = $File::Find::name;
+
+            unless ( ( $file =~ $src_regex ) or ( $file =~ $target_regex ) ) {
+                if ( $file =~ $regex ) {
+                    my $lang;
+
+                    if ($2) {
+                        $lang = $1 . $2;
+                    }
+                    else {
+                        $lang = $1;
+                    }
+
+                    $langs->insert( $lang );
+                }
+            }
+        },
+        $dir
+    );
+
+    return $langs;
 }
 
 =head2 print_license
