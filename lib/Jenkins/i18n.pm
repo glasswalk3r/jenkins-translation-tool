@@ -262,13 +262,13 @@ Returns a hash reference.
 
 =cut
 
-my $space_regex = qr/\s/;
+my $space_regex       = qr/\s/;
 my $jelly_blurb_regex = qr/^\$\{\%blurb\(/;
 
 sub jelly_entry {
     my $value = shift;
     $value =~ s/$space_regex/\\ /g;
-    return 'blurb' if ($value =~ $jelly_blurb_regex);
+    return 'blurb' if ( $value =~ $jelly_blurb_regex );
     $value =~ tr/$//d;
     $value =~ tr/{//d;
     $value =~ tr/}//d;
@@ -276,39 +276,44 @@ sub jelly_entry {
     return $value;
 }
 
-my $lf_regex = qr/\n/;
+my $lf_regex           = qr/\n/;
 my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
 my $jelly_strict_regex = qr/^\$\{\%.*\}$/;
-my $jelly_extract_regex = qr/.*(?<jelly>\$\{%\w+[\-!\[\],'\s\(\w\+\.\'\/\)]+\}).*/;
+
+# would have used POSIX [:punct:], but can't make it work inside this mess
+my $jelly_extract_regex
+    = qr/.*(?<jelly>\$\{%\w+["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\{\}\s\(\w\+\.\'\/\)]+\}).*/;
 my $jelly_prefix_regex = qr/\$\{\%\w/;
 
 sub load_jelly {
     my $file = shift;
     my %ret;
-    my $dom = XML::LibXML->load_xml(location => $file);
+    my $dom = XML::LibXML->load_xml( location => $file );
 
-    foreach my $item ($dom->findnodes('//*')) {
+    foreach my $item ( $dom->findnodes('//*') ) {
 
-        if ($item->nodeName eq 'script') {
+        if ( $item->nodeName eq 'script' ) {
 
-            if ($item->hasChildNodes) {
-                foreach my $child($item->childNodes) {
-                    if ($child->nodeType == XML_TEXT_NODE) {
-                        my $code = $child->data;
-                        my @lines = split(/\n/, $code);
+            if ( $item->hasChildNodes ) {
+                foreach my $child ( $item->childNodes ) {
+                    if ( $child->nodeType == XML_TEXT_NODE ) {
+                        my $code  = $child->data;
+                        my @lines = split( /\n/, $code );
 
-                        foreach my $line(@lines) {
-                            if ($line =~ $jelly_prefix_regex) {
+                        foreach my $line (@lines) {
+                            if ( $line =~ $jelly_prefix_regex ) {
                                 $line =~ s/$space_prefix_regex//;
                                 $line =~ s/$space_suffix_regex//;
 
-                                if ($line =~ $jelly_extract_regex) {
-                                  next unless($+{jelly});
-                                  my $token = $+{jelly};
-                                  next unless ($token =~ $jelly_strict_regex);
-                                  my $key = jelly_entry(${token});
-                                  $ret{$key} = 1;
+                                if ( $line =~ $jelly_extract_regex ) {
+                                    next unless ( $+{jelly} );
+                                    my $token = $+{jelly};
+                                    next
+                                        unless (
+                                        $token =~ $jelly_strict_regex );
+                                    my $key = jelly_entry( ${token} );
+                                    $ret{$key} = 1;
                                 }
                             }
                         }
@@ -318,32 +323,33 @@ sub load_jelly {
             next;
         }
 
-        if ($item->nodeType == XML_ELEMENT_NODE) {
-            if ($item->hasAttributes()) {
-                foreach my $attrib ($item->attributes()) {
-                    if ($attrib->value =~ $jelly_strict_regex) {
-                        my $key = jelly_entry($attrib->value);
+        if ( $item->nodeType == XML_ELEMENT_NODE ) {
+            if ( $item->hasAttributes() ) {
+                foreach my $attrib ( $item->attributes() ) {
+                    if ( $attrib->value =~ $jelly_strict_regex ) {
+                        my $key = jelly_entry( $attrib->value );
                         $ret{$key} = 1;
                     }
                 }
             }
 
-            if ($item->hasChildNodes) {
-                foreach my $child ($item->childNodes) {
-                    if ($child->nodeType == XML_TEXT_NODE) {
+            if ( $item->hasChildNodes ) {
+                foreach my $child ( $item->childNodes ) {
+                    if ( $child->nodeType == XML_TEXT_NODE ) {
                         my $stuff = $child->data;
                         $stuff =~ s/$lf_regex//g;
                         $stuff =~ s/$space_prefix_regex//;
                         $stuff =~ s/$space_suffix_regex//;
 
-                        if ($stuff =~ $jelly_extract_regex) {
-                          next unless($+{jelly});
-                          my $token = $+{jelly};
-                          next unless ($token =~ $jelly_strict_regex);
-                          my $key = jelly_entry($token);
-                          $ret{$key} = 1;
-                        } else {
-                          next;
+                        if ( $stuff =~ $jelly_extract_regex ) {
+                            next unless ( $+{jelly} );
+                            my $token = $+{jelly};
+                            next unless ( $token =~ $jelly_strict_regex );
+                            my $key = jelly_entry($token);
+                            $ret{$key} = 1;
+                        }
+                        else {
+                            next;
                         }
                     }
                 }
