@@ -281,6 +281,7 @@ my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
 my $jelly_strict_regex = qr/^\$\{\%.*\}$/;
 my $jelly_extract_regex = qr/.*(?<jelly>\$\{%\w+[\-!\[\],'\s\(\w\+\.\'\/\)]+\}).*/;
+my $jelly_prefix_regex = qr/\$\{\%\w/;
 
 sub load_jelly {
     my $file = shift;
@@ -290,7 +291,6 @@ sub load_jelly {
     foreach my $item ($dom->findnodes('//*')) {
 
         if ($item->nodeName eq 'script') {
-            my $foo = qr/\$\{\%.*\}/;
 
             if ($item->hasChildNodes) {
                 foreach my $child($item->childNodes) {
@@ -299,7 +299,7 @@ sub load_jelly {
                         my @lines = split(/\n/, $code);
 
                         foreach my $line(@lines) {
-                            if ($line =~ $foo) {
+                            if ($line =~ $jelly_prefix_regex) {
                                 $line =~ s/$space_prefix_regex//;
                                 $line =~ s/$space_suffix_regex//;
 
@@ -340,7 +340,7 @@ sub load_jelly {
                           next unless($+{jelly});
                           my $token = $+{jelly};
                           next unless ($token =~ $jelly_strict_regex);
-                          my $key = jelly_entry(${token});
+                          my $key = jelly_entry($token);
                           $ret{$key} = 1;
                         } else {
                           next;
