@@ -263,16 +263,16 @@ Returns a hash reference.
 =cut
 
 my $space_regex = qr/\s/;
-my $jelly_blurb_regex = qr/\(.*\)/;
+my $jelly_blurb_regex = qr/^\$\{\%blurb\(/;
 
 sub jelly_entry {
     my $value = shift;
     $value =~ s/$space_regex/\\ /g;
+    return 'blurb' if ($value =~ $jelly_blurb_regex);
     $value =~ tr/$//d;
     $value =~ tr/{//d;
     $value =~ tr/}//d;
     $value =~ tr/%//d;
-    $value =~ s/$jelly_blurb_regex//;
     return $value;
 }
 
