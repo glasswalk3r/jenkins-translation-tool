@@ -7,6 +7,7 @@ use Carp qw(confess);
 use File::Find;
 use File::Spec;
 use Config;
+use XML::LibXML qw(:libxml);
 
 use Jenkins::i18n::Properties;
 
@@ -261,33 +262,96 @@ Returns a hash reference.
 
 =cut
 
-# TODO: replace regex with XML parser
+my $space_regex = qr/\s/;
+my $jelly_blurb_regex = qr/\(.*\)/;
+
+sub jelly_entry {
+    my $value = shift;
+    $value =~ s/$space_regex/\\ /g;
+    $value =~ tr/$//d;
+    $value =~ tr/{//d;
+    $value =~ tr/}//d;
+    $value =~ tr/%//d;
+    $value =~ s/$jelly_blurb_regex//;
+    return $value;
+}
+
+my $lf_regex = qr/\n/;
+my $space_prefix_regex = qr/^\s+/;
+my $space_suffix_regex = qr/\s+$/;
+my $jelly_strict_regex = qr/^\$\{\%.*\}$/;
+my $jelly_extract_regex = qr/.*(?<jelly>\$\{%\w+[\-!\[\],'\s\(\w\+\.\'\/\)]+\}).*/;
+
 sub load_jelly {
     my $file = shift;
     my %ret;
+    my $dom = XML::LibXML->load_xml(location => $file);
 
-    open( my $fh, '<', $file ) or confess "Cannot read $file: $!\n";
+    foreach my $item ($dom->findnodes('//*')) {
 
-    while (<$fh>) {
-        next if ( !/\$\{.*?\%([^\(]+?).*\}/ );
-        my $line = $_;
-        while ($line =~ /^.*?\$\{\%([^\(\}]+)(.*)$/
-            || $line =~ /^.*?\$\{.*?['"]\%([^\(\}\"\']+)(.*)$/ )
-        {
-            $line = $2;
-            my $word = $1;
-            $word =~ s/\(.+$//g;
-            $word =~ s/'+/''/g;
-            $word =~ s/ /\\ /g;
-            $word =~ s/\&gt;/>/g;
-            $word =~ s/\&lt;/</g;
-            $word =~ s/\&amp;/&/g;
-            $word =~ s/([#:=])/\\$1/g;
-            $ret{$word} = 1;
+        if ($item->nodeName eq 'script') {
+            my $foo = qr/\$\{\%.*\}/;
+
+            if ($item->hasChildNodes) {
+                foreach my $child($item->childNodes) {
+                    if ($child->nodeType == XML_TEXT_NODE) {
+                        my $code = $child->data;
+                        my @lines = split(/\n/, $code);
+
+                        foreach my $line(@lines) {
+                            if ($line =~ $foo) {
+                                $line =~ s/$space_prefix_regex//;
+                                $line =~ s/$space_suffix_regex//;
+
+                                if ($line =~ $jelly_extract_regex) {
+                                  next unless($+{jelly});
+                                  my $token = $+{jelly};
+                                  next unless ($token =~ $jelly_strict_regex);
+                                  my $key = jelly_entry(${token});
+                                  $ret{$key} = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            next;
         }
+
+        if ($item->nodeType == XML_ELEMENT_NODE) {
+            if ($item->hasAttributes()) {
+                foreach my $attrib ($item->attributes()) {
+                    if ($attrib->value =~ $jelly_strict_regex) {
+                        my $key = jelly_entry($attrib->value);
+                        $ret{$key} = 1;
+                    }
+                }
+            }
+
+            if ($item->hasChildNodes) {
+                foreach my $child ($item->childNodes) {
+                    if ($child->nodeType == XML_TEXT_NODE) {
+                        my $stuff = $child->data;
+                        $stuff =~ s/$lf_regex//g;
+                        $stuff =~ s/$space_prefix_regex//;
+                        $stuff =~ s/$space_suffix_regex//;
+
+                        if ($stuff =~ $jelly_extract_regex) {
+                          next unless($+{jelly});
+                          my $token = $+{jelly};
+                          next unless ($token =~ $jelly_strict_regex);
+                          my $key = jelly_entry(${token});
+                          $ret{$key} = 1;
+                        } else {
+                          next;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
-    close($fh);
     return \%ret;
 }
 

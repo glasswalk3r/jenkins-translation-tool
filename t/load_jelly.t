@@ -1,13 +1,15 @@
 use warnings;
 use strict;
-use Test::More tests => 4;
+use Test::More;# tests => 4;
 use File::Spec;
 
 use Jenkins::i18n qw(load_jelly);
 
-my $sample = File::Spec->catfile( 't', 'samples', 'message.jelly' );
+my ($sample, $result);
+
+$sample = File::Spec->catfile( 't', 'samples', 'message.jelly' );
 note("Using $sample");
-my $result = load_jelly($sample);
+$result = load_jelly($sample);
 is( ref $result, 'HASH', 'result is a hash reference' );
 is_deeply( $result, { 'blurb' => 1 }, 'result has the expected content' )
     or diag( explain($result) );
@@ -26,6 +28,35 @@ is_deeply(
     'result has the expected content'
 ) or diag( explain($result) );
 
+$sample = File::Spec->catfile( 't', 'samples', 'signup.jelly' );
+note("Using sample $sample for even more complex keys");
+$result = load_jelly($sample);
+is( ref $result, 'HASH', 'result is a hash reference' );
+is_deeply(
+    $result,
+    {
+        'A\\ strong\\ password\\ is\\ a\\ long\\ password\\ that\'s\\ unique\\ for\\ every\\ site.\\ Try\\ using\\ a\\ phrase\\ with\\ 5-6\\ words\\ for\\ the\\ best\\ security.' => 1,
+        'Create\\ account' => 1,
+        'Create\\ an\\ account!' => 1,
+        'Create\\ an\\ account!\\ [Jenkins]' => 1,
+        'Email' => 1,
+        'Enter\\ text\\ as\\ shown' => 1,
+        'Full\\ name' => 1,
+        'If\\ you\\ already\\ have\\ a\\ Jenkins\\ account,' => 1,
+        'Password' => 1,
+        'Show' => 1,
+        'Strength' => 1,
+        'Username' => 1,
+        'please\\ sign\\ in.' => 1,
+        'Strong' => 1,
+        'Moderate' => 1,
+        'Weak' => 1,
+        'Poor' => 1
+    },
+    'result has the expected content'
+) or diag( explain($result) );
+
+done_testing;
+
 # -*- mode: perl -*-
 # vi: set ft=perl :
-
