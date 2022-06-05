@@ -281,9 +281,10 @@ my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
 my $jelly_strict_regex = qr/^\$\{\%.*\}$/;
 
-# would have used POSIX [:punct:], but can't make it work inside this mess
-my $jelly_extract_regex
-    = qr/.*(?<jelly>\$\{%\w+["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\{\}\s\(\w\+\.\'\/\)]+\}).*/;
+# capture ${%<almost everything>}
+my $jelly_extract_regex = qr/.*(?<jelly>\$\{%\w+ # the Jelly "identifier"
+  ["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
+  \}).*/x;
 my $jelly_prefix_regex = qr/\$\{\%\w/;
 
 sub load_jelly {

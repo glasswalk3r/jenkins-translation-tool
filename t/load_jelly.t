@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More;    # tests => 4;
+use Test::More tests => 6;
 use File::Spec;
 
 use Jenkins::i18n qw(load_jelly);
@@ -56,8 +56,6 @@ is_deeply(
     },
     'result has the expected content'
 ) or diag( explain($result) );
-
-done_testing;
 
 # -*- mode: perl -*-
 # vi: set ft=perl :
