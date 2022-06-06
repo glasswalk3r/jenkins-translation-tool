@@ -142,7 +142,6 @@ my $src_regex     = qr/$src_test_path/;
 my $target_regex  = qr/$target_path/;
 my $msgs_regex    = qr/Messages\.properties$/;
 my $jelly_regex   = qr/\.jelly$/;
-
 my $win_sep_regex;
 
 if ( $Config{osname} eq 'MSWin32' ) {
@@ -252,6 +251,51 @@ sub load_properties {
     return $props_handler->getProperties;
 }
 
+=head2 jelly_entry
+
+Retrieves the entry to be translated from the Jelly "token", trimming spaces
+and removing other unwanted characters.
+
+Expects as parameters:
+
+=over
+
+=item *
+
+a Jelly "token" (C<${%<whatever>}>) as parameter.
+
+=item *
+
+A reference to a hash reference, to add the extracted entry.
+
+=back
+
+Return C<1> if everything goes fine.
+
+Contrary to the other functions of this package, C<jelly_entry> is not
+exportable.
+
+=cut
+
+my $space_regex       = qr/\s/;
+my $jelly_blurb_regex = qr/^\$\{\%blurb\(/;
+
+sub jelly_entry {
+    my ( $value, $all_entries_ref ) = @_;
+    $value =~ s/$space_regex/\\ /g;
+    if ( $value =~ $jelly_blurb_regex ) {
+        $all_entries_ref->{'blurb'} = 1;
+    }
+    else {
+        $value =~ tr/$//d;
+        $value =~ tr/{//d;
+        $value =~ tr/}//d;
+        $value =~ tr/%//d;
+        $all_entries_ref->{$value} = 1;
+    }
+    return 1;
+}
+
 =head2 load_jelly
 
 Fill a hash with key/1 pairs from a C<.jelly> file.
@@ -261,20 +305,6 @@ Expects as parameter the path to a Jelly file.
 Returns a hash reference.
 
 =cut
-
-my $space_regex       = qr/\s/;
-my $jelly_blurb_regex = qr/^\$\{\%blurb\(/;
-
-sub jelly_entry {
-    my $value = shift;
-    $value =~ s/$space_regex/\\ /g;
-    return 'blurb' if ( $value =~ $jelly_blurb_regex );
-    $value =~ tr/$//d;
-    $value =~ tr/{//d;
-    $value =~ tr/}//d;
-    $value =~ tr/%//d;
-    return $value;
-}
 
 my $lf_regex           = qr/\n/;
 my $space_prefix_regex = qr/^\s+/;
@@ -294,6 +324,7 @@ sub load_jelly {
 
     foreach my $item ( $dom->findnodes('//*') ) {
 
+        # Javascript code block, inside an XML file. Oh boy...
         if ( $item->nodeName eq 'script' ) {
 
             if ( $item->hasChildNodes ) {
@@ -313,8 +344,7 @@ sub load_jelly {
                                     next
                                         unless (
                                         $token =~ $jelly_strict_regex );
-                                    my $key = jelly_entry( ${token} );
-                                    $ret{$key} = 1;
+                                    jelly_entry( ${token}, \%ret );
                                 }
                             }
                         }
@@ -328,8 +358,7 @@ sub load_jelly {
             if ( $item->hasAttributes() ) {
                 foreach my $attrib ( $item->attributes() ) {
                     if ( $attrib->value =~ $jelly_strict_regex ) {
-                        my $key = jelly_entry( $attrib->value );
-                        $ret{$key} = 1;
+                        jelly_entry( $attrib->value, \%ret );
                     }
                 }
             }
@@ -346,8 +375,7 @@ sub load_jelly {
                             next unless ( $+{jelly} );
                             my $token = $+{jelly};
                             next unless ( $token =~ $jelly_strict_regex );
-                            my $key = jelly_entry($token);
-                            $ret{$key} = 1;
+                            jelly_entry( $token, \%ret );
                         }
                         else {
                             next;
