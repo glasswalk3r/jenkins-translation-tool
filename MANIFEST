@@ -12,6 +12,7 @@ README.md
 History.md
 Workflow.md
 t/find_files.t
+t/jelly_entry.t
 t/Jenkins-i18n.t
 t/load_jelly.t
 t/load_properties.t
