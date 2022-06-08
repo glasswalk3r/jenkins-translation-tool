@@ -277,16 +277,22 @@ exportable.
 
 =cut
 
-my $space_regex       = qr/\s/;
-my $jelly_blurb_regex = qr/^\$\{\%blurb\(/;
+my $space_regex = qr/\s/;
+
+# ${%Build Queue(items.size())}
+my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s]+)\(.*\)}/;
 
 sub jelly_entry {
     my ( $value, $all_entries_ref ) = @_;
-    $value =~ s/$space_regex/\\ /g;
-    if ( $value =~ $jelly_blurb_regex ) {
-        $all_entries_ref->{'blurb'} = 1;
+    if ( $value =~ $jelly_func_regex ) {
+        confess "Could not extract the Jelly from '$value'"
+            unless ( $+{func_name} );
+        $value = $+{func_name};
+        $value =~ s/$space_regex/\\ /g;
+        $all_entries_ref->{$value} = 1;
     }
     else {
+        $value =~ s/$space_regex/\\ /g;
         $value =~ tr/$//d;
         $value =~ tr/{//d;
         $value =~ tr/}//d;
@@ -357,6 +363,11 @@ sub load_jelly {
         if ( $item->nodeType == XML_ELEMENT_NODE ) {
             if ( $item->hasAttributes() ) {
                 foreach my $attrib ( $item->attributes() ) {
+
+# TODO: fix to match multiple
+# /\$\{\%\w["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+\}/
+# <l:layout title="${%Advanced Settings} - ${%Plugin Manager}" permission="${app.SYSTEM_READ}">
+# <button class="jenkins-table__button jenkins-!-destructive-color uninstall" tooltip="${%Uninstall} ${p.updateInfo.displayName?:p.displayName}">
                     if ( $attrib->value =~ $jelly_strict_regex ) {
                         jelly_entry( $attrib->value, \%ret );
                     }
