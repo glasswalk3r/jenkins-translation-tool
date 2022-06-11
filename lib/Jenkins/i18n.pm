@@ -278,7 +278,7 @@ exportable.
 =cut
 
 my $space_regex      = qr/\s/;
-my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s]+)\(.*\)}/;
+my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s-]+)\(.*\)}/;
 
 sub jelly_entry {
     my ( $value, $all_entries_ref ) = @_;

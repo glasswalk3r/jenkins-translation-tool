@@ -60,6 +60,13 @@ THE SOFTWARE.
                         <p class="simple-page--description">
                             ${%If you already have a Jenkins account,}&#160;<a href="${rootURL}/login">${%please sign in.}</a>
                         </p>
+                        <p>
+                            ${%detached-many-dependents(impliedDependents.size())}
+                        </p>
+                        <p>
+                            ${%There's no workspace for this project. Possible reasons are:}
+                        </p>
+                        <th class="jenkins-table__cell--tight" tooltip="${%Status of the last build}">${%S}</th>
                     </div>
                     <form class="signup" action="${rootURL}/securityRealm/createAccount" method="post" id="main-panel">
                         <div class="jenkins-form-item">

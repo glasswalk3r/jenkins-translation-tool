@@ -55,7 +55,12 @@ is_deeply(
         'Poor'                                               => 1,
         'Uninstall'                                          => 1,
         'Advanced\\ Settings'                                => 1,
-        'Plugin\\ Manager'                                   => 1
+        'Plugin\\ Manager'                                   => 1,
+        'detached-many-dependents'                           => 1,
+        'Status\\ of\\ the\\ last\\ build'                   => 1,
+        'S'                                                  => 1,
+q{There's\\ no\\ workspace\\ for\\ this\\ project.\\ Possible\\ reasons\\ are\\:}
+            => 1
     },
     'result has the expected content'
 ) or diag( explain($result) );
