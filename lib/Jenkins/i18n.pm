@@ -311,10 +311,10 @@ my $lf_regex           = qr/\n/;
 my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
 my $jelly_regex        = qr/\$\{% # the Jelly "identifier"
-  ["\\#$%&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
+  ["\\#\$%&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
   \}/x;
 my $jelly_extract_regex = qr/(?<jelly>\$\{% # the Jelly "identifier"
-  ["\\#$%&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
+  ["\\#\$%&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
   \})/x;
 my $jelly_prefix_regex = qr/\$\{\%\w/;
 
