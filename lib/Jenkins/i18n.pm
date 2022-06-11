@@ -277,7 +277,7 @@ exportable.
 
 =cut
 
-my $space_regex      = qr/\s/;
+my $space_regex      = qr/([\s:]{1})/;
 my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s-]+)\(.*\)}/;
 
 sub jelly_entry {
@@ -286,15 +286,12 @@ sub jelly_entry {
         confess "Could not extract the Jelly from '$value'"
             unless ( $+{func_name} );
         $value = $+{func_name};
-        $value =~ s/$space_regex/\\ /g;
+        $value =~ s/$space_regex/\\$1/g;
         $all_entries_ref->{$value} = 1;
     }
     else {
-        $value =~ s/$space_regex/\\ /g;
-        $value =~ tr/$//d;
-        $value =~ tr/{//d;
-        $value =~ tr/}//d;
-        $value =~ tr/%//d;
+        $value =~ s/$space_regex/\\$1/g;
+        $value =~ tr/${}%//d;
         $all_entries_ref->{$value} = 1;
     }
     return 1;
@@ -313,10 +310,10 @@ Returns a hash reference.
 my $lf_regex           = qr/\n/;
 my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
-my $jelly_regex        = qr/\$\{%\w+ # the Jelly "identifier"
+my $jelly_regex        = qr/\$\{% # the Jelly "identifier"
   ["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
   \}/x;
-my $jelly_extract_regex = qr/(?<jelly>\$\{%\w+ # the Jelly "identifier"
+my $jelly_extract_regex = qr/(?<jelly>\$\{% # the Jelly "identifier"
   ["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
   \})/x;
 my $jelly_prefix_regex = qr/\$\{\%\w/;
