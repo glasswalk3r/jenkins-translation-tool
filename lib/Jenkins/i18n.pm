@@ -136,12 +136,12 @@ Returns an sorted array reference with the complete path to those files.
 =cut
 
 # Relative paths inside the Jenkins project repository
-my $src_test_path = File::Spec->catfile( 'src',    'test' );
-my $target_path   = File::Spec->catfile( 'target', '' );
-my $src_regex     = qr/$src_test_path/;
-my $target_regex  = qr/$target_path/;
-my $msgs_regex    = qr/Messages\.properties$/;
-my $jelly_regex   = qr/\.jelly$/;
+my $src_test_path   = File::Spec->catfile( 'src',    'test' );
+my $target_path     = File::Spec->catfile( 'target', '' );
+my $src_regex       = qr/$src_test_path/;
+my $target_regex    = qr/$target_path/;
+my $msgs_regex      = qr/Messages\.properties$/;
+my $jelly_ext_regex = qr/\.jelly$/;
 my $win_sep_regex;
 
 if ( $Config{osname} eq 'MSWin32' ) {
@@ -169,7 +169,7 @@ sub find_files {
             unless ( ( $file =~ $src_regex ) or ( $file =~ $target_regex ) ) {
                 push( @files, $file )
                     if ( ( $file =~ $msgs_regex )
-                    or ( $file =~ $jelly_regex ) );
+                    or ( $file =~ $jelly_ext_regex ) );
             }
         },
         $dir
@@ -277,9 +277,7 @@ exportable.
 
 =cut
 
-my $space_regex = qr/\s/;
-
-# ${%Build Queue(items.size())}
+my $space_regex      = qr/\s/;
 my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s]+)\(.*\)}/;
 
 sub jelly_entry {
@@ -315,12 +313,12 @@ Returns a hash reference.
 my $lf_regex           = qr/\n/;
 my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
-my $jelly_strict_regex = qr/^\$\{\%.*\}$/;
-
-# capture ${%<almost everything>}
-my $jelly_extract_regex = qr/.*(?<jelly>\$\{%\w+ # the Jelly "identifier"
+my $jelly_regex        = qr/\$\{%\w+ # the Jelly "identifier"
   ["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
-  \}).*/x;
+  \}/x;
+my $jelly_extract_regex = qr/(?<jelly>\$\{%\w+ # the Jelly "identifier"
+  ["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
+  \})/x;
 my $jelly_prefix_regex = qr/\$\{\%\w/;
 
 sub load_jelly {
@@ -348,8 +346,7 @@ sub load_jelly {
                                     next unless ( $+{jelly} );
                                     my $token = $+{jelly};
                                     next
-                                        unless (
-                                        $token =~ $jelly_strict_regex );
+                                        unless ( $token =~ $jelly_regex );
                                     jelly_entry( ${token}, \%ret );
                                 }
                             }
@@ -363,13 +360,12 @@ sub load_jelly {
         if ( $item->nodeType == XML_ELEMENT_NODE ) {
             if ( $item->hasAttributes() ) {
                 foreach my $attrib ( $item->attributes() ) {
-
-# TODO: fix to match multiple
-# /\$\{\%\w["\\#$%&'\*\-!\?\[\],'\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+\}/
-# <l:layout title="${%Advanced Settings} - ${%Plugin Manager}" permission="${app.SYSTEM_READ}">
-# <button class="jenkins-table__button jenkins-!-destructive-color uninstall" tooltip="${%Uninstall} ${p.updateInfo.displayName?:p.displayName}">
-                    if ( $attrib->value =~ $jelly_strict_regex ) {
-                        jelly_entry( $attrib->value, \%ret );
+                    if ( $attrib->value =~ $jelly_regex ) {
+                        my @extracted
+                            = ( $attrib->value =~ /$jelly_extract_regex/g );
+                        foreach my $extracted (@extracted) {
+                            jelly_entry( $extracted, \%ret );
+                        }
                     }
                 }
             }
@@ -385,7 +381,7 @@ sub load_jelly {
                         if ( $stuff =~ $jelly_extract_regex ) {
                             next unless ( $+{jelly} );
                             my $token = $+{jelly};
-                            next unless ( $token =~ $jelly_strict_regex );
+                            next unless ( $token =~ $jelly_regex );
                             jelly_entry( $token, \%ret );
                         }
                         else {

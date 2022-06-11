@@ -52,7 +52,10 @@ is_deeply(
         'Strong'                                             => 1,
         'Moderate'                                           => 1,
         'Weak'                                               => 1,
-        'Poor'                                               => 1
+        'Poor'                                               => 1,
+        'Uninstall'                                          => 1,
+        'Advanced\\ Settings'                                => 1,
+        'Plugin\\ Manager'                                   => 1
     },
     'result has the expected content'
 ) or diag( explain($result) );

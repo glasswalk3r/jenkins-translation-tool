@@ -43,6 +43,7 @@ THE SOFTWARE.
     <html lang="${request.getLocale().toLanguageTag()}">
         <head data-rooturl="${rootURL}" data-resurl="${resURL}" data-imagesurl="${imagesURL}" resURL="${resURL}">
             <title>${%Create an account! [Jenkins]}</title>
+            <l:layout title="${%Advanced Settings} - ${%Plugin Manager}" permission="${app.SYSTEM_READ}"></l:layout>
             <!-- we do not want bots on this page -->
             <meta name="ROBOTS" content="NOFOLLOW"/>
             <!-- mobile friendly layout -->
@@ -260,7 +261,8 @@ THE SOFTWARE.
                       <div class="submit">
                         <button type="submit"
                                name="Submit"
-                               class="jenkins-button jenkins-button--primary">
+                               class="jenkins-button jenkins-button--primary"
+                               tooltip="${%Uninstall} ${p.updateInfo.displayName?:p.displayName}">
                           ${%Create account}
                         </button>
                       </div>
