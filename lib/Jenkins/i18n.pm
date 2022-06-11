@@ -6,7 +6,6 @@ use warnings;
 use Carp qw(confess);
 use File::Find;
 use File::Spec;
-use Config;
 
 use Jenkins::i18n::Properties;
 
@@ -142,12 +141,6 @@ my $target_regex  = qr/$target_path/;
 my $msgs_regex    = qr/Messages\.properties$/;
 my $jelly_regex   = qr/\.jelly$/;
 
-my $win_sep_regex;
-
-if ( $Config{osname} eq 'MSWin32' ) {
-    $win_sep_regex = qr#/#;
-}
-
 sub find_files {
     my $dir = shift;
     confess 'Must provide a string, invalid directory parameter'
@@ -157,14 +150,9 @@ sub find_files {
     die "Directory $dir must exists" unless ( -d $dir );
     my @files;
 
-    # BUGFIX: File::Find::name is not returning with MS Windows separator
-    my $is_windows = 0;
-    $is_windows = 1 if ( $Config{osname} eq 'MSWin32' );
-
     find(
         sub {
             my $file = $File::Find::name;
-            $file =~ s#$win_sep_regex#\\# if ($is_windows);
 
             unless ( ( $file =~ $src_regex ) or ( $file =~ $target_regex ) ) {
                 push( @files, $file )
