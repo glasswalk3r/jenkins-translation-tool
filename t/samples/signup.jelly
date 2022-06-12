@@ -255,6 +255,19 @@ THE SOFTWARE.
                             </script>
 
                         </div>
+
+                        <div class="jenkins-form-item jenkins-search">
+                          <input
+                            class="jenkins-search__input"
+                            type="search"
+                            id="filter-box"
+                            value="${request.getParameter('filter')}"
+                            placeholder="${filtered == 'true' ? '%Search' : '%Filter'}"/>
+                          <div class="jenkins-search__icon">
+                            <l:icon src="symbol-search"/>
+                          </div>
+                        </div>
+
                         <p class="simple-page--description">
                             ${%A strong password is a long password that's unique for every site. Try using a phrase with 5-6 words for the best security.}
                         </p>

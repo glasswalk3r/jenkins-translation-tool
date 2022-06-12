@@ -23,6 +23,7 @@ my $expected_ref = [
     File::Spec->catfile(qw(t samples Messages.properties)),
     File::Spec->catfile(qw(t samples config.jelly)),
     File::Spec->catfile(qw(t samples message.jelly)),
+    File::Spec->catfile(qw(t samples oops.jelly)),
     File::Spec->catfile(qw(t samples signup.jelly))
 ];
 is_deeply( $files_ref, $expected_ref,

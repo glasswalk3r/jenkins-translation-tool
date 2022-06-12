@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More tests => 6;
+use Test::More;    # tests => 6;
 use File::Spec;
 
 use Jenkins::i18n qw(load_jelly);
@@ -15,7 +15,7 @@ is_deeply( $result, { 'blurb' => 1 }, 'result has the expected content' )
     or diag( explain($result) );
 
 $sample = File::Spec->catfile( 't', 'samples', 'config.jelly' );
-note("Using sample $sample for complex keys");
+note("Using sample $sample");
 $result = load_jelly($sample);
 is( ref $result, 'HASH', 'result is a hash reference' );
 is_deeply(
@@ -29,7 +29,7 @@ is_deeply(
 ) or diag( explain($result) );
 
 $sample = File::Spec->catfile( 't', 'samples', 'signup.jelly' );
-note("Using sample $sample for even more complex keys");
+note("Using sample $sample");
 $result = load_jelly($sample);
 is( ref $result, 'HASH', 'result is a hash reference' );
 is_deeply(
@@ -59,11 +59,34 @@ is_deeply(
         'detached-many-dependents'                           => 1,
         'Status\\ of\\ the\\ last\\ build'                   => 1,
         'S'                                                  => 1,
+        'Search'                                             => 1,
+        'Filter'                                             => 1,
 q{There's\\ no\\ workspace\\ for\\ this\\ project.\\ Possible\\ reasons\\ are\\:}
             => 1
     },
     'result has the expected content'
 ) or diag( explain($result) );
+
+$sample = File::Spec->catfile( 't', 'samples', 'oops.jelly' );
+note("Using sample $sample");
+$result = load_jelly($sample);
+is( ref $result, 'HASH', 'result is a hash reference' );
+is_deeply(
+    $result,
+    {
+        'Oops!'            => 1,
+        'Stack\\ trace'    => 1,
+        'checkJIRA'        => 1,
+        'problemHappened'  => 1,
+        'vote'             => 1,
+        'pleaseReport'     => 1,
+        'stackTracePlease' => 1,
+        'checkML'          => 1
+    },
+    'result has the expected content'
+) or diag( explain($result) );
+
+done_testing;
 
 # -*- mode: perl -*-
 # vi: set ft=perl :

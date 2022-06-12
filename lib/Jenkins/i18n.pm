@@ -277,24 +277,50 @@ exportable.
 
 =cut
 
-my $space_regex      = qr/([\s:]{1})/;
+my $to_escape_regex = qr/([\s:]{1})/;
+
+# not sure if it is really a function, but looks like one
 my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s-]+)\(.*\)}/;
+my $jelly_key_regex
+    = qr/%(["\\#\$\&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+)/;
 
 sub jelly_entry {
     my ( $value, $all_entries_ref ) = @_;
+
     if ( $value =~ $jelly_func_regex ) {
         confess "Could not extract the Jelly from '$value'"
             unless ( $+{func_name} );
         $value = $+{func_name};
-        $value =~ s/$space_regex/\\$1/g;
+        $value =~ s/$to_escape_regex/\\$1/g;
         $all_entries_ref->{$value} = 1;
+        return 1;
     }
     else {
-        $value =~ s/$space_regex/\\$1/g;
-        $value =~ tr/${}%//d;
-        $all_entries_ref->{$value} = 1;
+        $value =~ tr/${}//d;
+        my @keys;
+
+        # TODO: optimize with qr
+        if ( @keys = ( $value =~ /'%([\w\s]+)'/g ) ) {
+            foreach my $key (@keys) {
+                $key =~ s/$to_escape_regex/\\$1/g;
+                $all_entries_ref->{$key} = 1;
+            }
+
+            return 1;
+        }
+
+        return 0 unless ( $value =~ $jelly_key_regex );
+        @keys = ( $value =~ /$jelly_key_regex/g );
+
+        foreach my $key (@keys) {
+            $key =~ s/$to_escape_regex/\\$1/g;
+            $all_entries_ref->{$key} = 1;
+        }
+        return 1;
+
     }
-    return 1;
+
+    return 0;
 }
 
 =head2 load_jelly
@@ -310,10 +336,10 @@ Returns a hash reference.
 my $lf_regex           = qr/\n/;
 my $space_prefix_regex = qr/^\s+/;
 my $space_suffix_regex = qr/\s+$/;
-my $jelly_regex        = qr/\$\{% # the Jelly "identifier"
+my $jelly_regex        = qr/\$\{ # the Jelly "identifier"
   ["\\#\$%&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
   \}/x;
-my $jelly_extract_regex = qr/(?<jelly>\$\{% # the Jelly "identifier"
+my $jelly_extract_regex = qr/(?<jelly>\$\{ # the Jelly "identifier"
   ["\\#\$%&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+ # almost everything after "identifier"
   \})/x;
 my $jelly_prefix_regex = qr/\$\{\%\w/;
@@ -360,6 +386,7 @@ sub load_jelly {
                     if ( $attrib->value =~ $jelly_regex ) {
                         my @extracted
                             = ( $attrib->value =~ /$jelly_extract_regex/g );
+
                         foreach my $extracted (@extracted) {
                             jelly_entry( $extracted, \%ret );
                         }
@@ -375,15 +402,14 @@ sub load_jelly {
                         $stuff =~ s/$space_prefix_regex//;
                         $stuff =~ s/$space_suffix_regex//;
 
-                        if ( $stuff =~ $jelly_extract_regex ) {
-                            next unless ( $+{jelly} );
-                            my $token = $+{jelly};
-                            next unless ( $token =~ $jelly_regex );
-                            jelly_entry( $token, \%ret );
+                        if ( $stuff =~ $jelly_regex ) {
+                            my @extracted
+                                = ( $stuff =~ /$jelly_extract_regex/g );
+                            foreach my $extracted (@extracted) {
+                                jelly_entry( $extracted, \%ret );
+                            }
                         }
-                        else {
-                            next;
-                        }
+
                     }
                 }
             }
