@@ -374,6 +374,8 @@ jtt - CLI to help internationalization for Jenkins
     --help             -> print this help message and exits
     --man              -> provides this CLI manpage and exits
     --version          -> prints the CLI version and exits
+    --all              -> prints all identified language codes and their respective
+                          percentage of translation
     --lang=xx          -> language code to use
     --add              -> optional, generate new files and add new keys to existing
                           files if present
@@ -390,10 +392,10 @@ jtt - CLI to help internationalization for Jenkins
 
 =head1 OPTIONS
 
-C<--lang> is mandatory and it has to be different to English. If it is the only
-option provided, all files in the provided language code will be analyzed and
-a report will be provided at the end of it, without modifying a single
-translation file.
+C<--lang> is mandatory (except for C<--all>) and it has to be different to
+English. If it is the only option provided, all files in the provided language
+code will be analyzed and a report will be provided at the end of it, without
+modifying a single translation file.
 
 C<--dir> and C<--target> are optional and the default values for each one is
 the current directory. This probably the best configuration if you're going
@@ -419,36 +421,72 @@ Remove all orphaned keys from German files which are in the current directory:
 
 =head1 DESCRIPTION
 
-CLI to generate missing translation keys and missing properties files and to
-remove unused keys.
+=head2 Reporting overall status
+
+The C<--all> option will run through all translation files to:
+
+=over
+
+=item 1.
+
+Load all the original English messages.
+
+=item 2.
+
+Identify all available translation, extracting the related language code.
+
+=item 3.
+
+For each language, prints it's code and the respective translation percentage.
+
+=back
+
+Any other command line options are ignored if used with C<--all>.
+
+=head2 Translation changing helpers
+
+To generate missing translation keys and missing properties files and to
+remove unused keys, the CLI uses this process:
 
 =over
 
 =item 1.
 
 It recursively looks for files in a folder, and analyzes them to extract the
-keys being used in the application.
+keys being used in the application. In order to do that, the option C<--lang>
+is required and the value must be different of C<english>.
 
 =item 2.
 
-If C<--add>, it generates the appropriate file for the desired language and
-adds these keys to it, adding the English text as a reference. If the
-properties file already exists the script update it with the new keys.
+If C<--add> is in use, it generates the appropriate file for the desired
+language and adds these keys to it, adding the English text as a reference.
+If the properties file already exists the CLI updates it with the new keys.
 
 =item 3.
 
-When C<--remove> and there are unused keys in our file, the script removes
-them.
+When C<--remove> is in use and there are unused keys in our file, the CLI
+removes them.
 
 =item 4.
 
-If an editor is passed as argument, the script edits each modified file
-after adding new keys.
+The C<--search> option can be used instead of the two describe above in order
+to just search for a particular value in all files and print to STDOUT their
+location. No changes are made to any file.
 
 =back
 
-Note, while the migration to Jenkins this file will report the keys which
-should point to Jenkins instead of the old name.
+The C<--counter> can be used with both options, as well C<--debug>.
+
+The C<--dir> and C<--target> options can also be used, but you probably just
+want to move inside to the path where the Jenkins Git repository is and run
+from there instead. These options are kept for compatibility with the original
+tool and might be removed in the future.
+
+=head1 REFERENCES
+
+Make sure to also check the proposed translation
+L<workflow|https://github.com/glasswalk3r/jenkins-translation-tool/blob/main/Workflow.md>
+documentation.
 
 =head1 AUTHOR
 
