@@ -12,7 +12,7 @@ use Getopt::Long;
 use Set::Tiny 0.04;
 use Term::ANSIColor 5.01;
 use Term::ProgressBar 2.22;
-use diagnostics;
+use FileHandle;
 
 use Cwd;
 use Pod::Usage qw(pod2usage);
@@ -78,7 +78,6 @@ my $ignore_same  = Set::Tiny->new(
 if ($all_langs) {
     my ( $files_ref, $all_langs );
     binmode( STDOUT, ':utf8' );
-    no warnings 'redefine';
 
     {
         local $| = 1;
@@ -104,20 +103,6 @@ if ($all_langs) {
     my $next_update = 0;
     my $counter     = 0;
 
-    my ( $lang, $percent );
-    format STDOUT_TOP =
-
-         Translation Status
-
-    Language code        %
-    ------------------------
-.
-
-    format STDOUT =
-    @<<<<<             @<<<<
-    $lang, $percent
-.
-
     foreach my $lang ( $all_langs->members ) {
         my $processor
             = Jenkins::i18n::ProcOpts->new( $dir, $target, 0, 0, 0, $debug,
@@ -139,15 +124,32 @@ if ($all_langs) {
 
     $progress->update($max) if $max >= $next_update;
     my @sorted = sort { $b <=> $a } keys(%results);
+    my ( $lang, $percent );
+
+    format LANGS_TOP =
+
+         Translation Status
+
+    Language code        %
+    ------------------------
+.
+
+    format LANGS =
+    @<<<<<             @<<<<
+    $lang, $percent
+.
+
+    select(STDOUT);
+    format_name STDOUT 'LANGS';
+    format_top_name STDOUT 'LANGS_TOP';
 
     foreach my $val (@sorted) {
-
-        #print $results{$val}, ' -> ', $val, "\n";
         $lang    = $results{$val};
         $percent = $val;
         write;
     }
 
+    print "\n\n";
     exit(0);
 }
 
@@ -175,7 +177,7 @@ foreach my $file ( @{$files_ref} ) {
     $warnings->reset;
 }
 
-$stats->summary;
+print_summary($stats);
 
 # This is the main method with is run for each file
 sub process_file {
@@ -315,6 +317,39 @@ sub process_file {
         print "Removed $removed keys\n";
     }
 
+}
+
+sub print_summary {
+    my $stats       = shift;
+    my $summary_ref = $stats->summary;
+    my ( $item, $total, $percent );
+
+    format SUMMARY_TOP =
+
+         Translation Status
+
+    Status         Total      %
+    -----------------------------
+.
+
+    format SUMMARY =
+    @<<<<<<<<<<    @<<<<    @<<<<
+    $item, $total, $percent
+.
+
+    my @metrics = qw(done missing unused empty same no_jenkins);
+    select(STDOUT);
+    format_name STDOUT 'SUMMARY';
+    format_top_name STDOUT 'SUMMARY_TOP';
+
+    foreach my $metric (@metrics) {
+        $item    = ucfirst($metric);
+        $total   = $summary_ref->{$metric};
+        $percent = $summary_ref->{"p$metric"};
+        write;
+    }
+
+    say "\n", 'Total of files: ', $stats->files;
 }
 
 sub read_license {

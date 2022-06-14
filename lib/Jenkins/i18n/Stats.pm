@@ -129,47 +129,27 @@ sub perc_done {
 
 sub summary {
     my $self = shift;
-    my $done = $self->_done;
-    my ( $pdone, $pmissing, $punused, $pempty, $psame, $pnojenkins );
 
     unless ( $self->{keys} == 0 ) {
-        $pdone    = $self->perc_done;
-        $pmissing = $self->{missing} / $self->{keys} * 100;
-        $punused  = $self->{unused} / $self->{keys} * 100;
+        my %summary = ( done => $self->_done, pdone => $self->perc_done );
+        my @wanted  = qw(missing unused empty same no_jenkins);
 
-        $pempty     = $self->{empty} / $self->{keys} * 100;
-        $psame      = $self->{same} / $self->{keys} * 100;
-        $pnojenkins = $self->{no_jenkins} / $self->{keys} * 100;
-        format STDOUT_TOP =
+        foreach my $wanted (@wanted) {
+            $summary{$wanted} = $self->{$wanted};
+            $summary{"p$wanted"} = $self->{$wanted} / $self->{keys} * 100;
+        }
 
-         Translation Status
+        return \%summary;
 
-    Status         Total      %
-    -----------------------------
-.
-
-        format STDOUT =
-    @<<<<<<<<<<    @<<<<    @<<<<
-    'Done', $done, $pdone
-    @<<<<<<<<<<    @<<<<    @<<<<
-    'Missing', $self->{missing}, $pmissing
-    @<<<<<<<<<<    @<<<<    @<<<<
-    'Orphan', $self->{unused}, $punused
-    @<<<<<<<<<<    @<<<<    @<<<<
-    'Empty', $self->{empty}, $pempty
-    @<<<<<<<<<<    @<<<<    @<<<<
-    'Same', $self->{same}, $psame
-    @<<<<<<<<<<    @<<<<    @<<<<
-    'No Jenkins', $self->{no_jenkins}, $pnojenkins
-
-.
-
-        write;
-        print 'Total of files: ', $self->{files}, "\n";
     }
-    else {
-        warn "Not a single key was processed\n";
-    }
+
+    warn "Not a single key was processed\n";
+    return {};
+}
+
+sub files {
+    my $self = shift;
+    return $self->{files};
 }
 
 1;
