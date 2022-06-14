@@ -6,7 +6,7 @@ use warnings;
 use Hash::Util qw(lock_keys);
 use Carp qw(confess);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =pod
 
