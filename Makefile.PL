@@ -13,7 +13,9 @@ WriteMakefile(
     EXE_FILES     => ['bin/jtt'],
     PREREQ_PM     => {
         'Config::Properties' => 1.80,
-        'Set::Tiny'          => 0.04
+        'Set::Tiny'          => 0.04,
+        'Term::ANSIColor'    => 5.01,
+        'Term::ProgressBar'  => 2.22
     },
     TEST_REQUIRES => {
         'Test::TempDir::Tiny' => 0.018,
