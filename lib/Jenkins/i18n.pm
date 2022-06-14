@@ -205,7 +205,7 @@ sub find_langs {
                         $lang = $1;
                     }
 
-                    $langs->insert( $lang );
+                    $langs->insert($lang);
                 }
             }
         },

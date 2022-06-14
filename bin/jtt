@@ -5,12 +5,18 @@
 
 use warnings;
 use strict;
+use utf8;
 use File::Basename;
 use File::Path;
 use Getopt::Long;
 use Set::Tiny 0.04;
+use Term::ANSIColor 5.01;
+use Term::ProgressBar 2.22;
+use diagnostics;
+
 use Cwd;
 use Pod::Usage qw(pod2usage);
+use feature 'say';
 
 use Jenkins::i18n (
     'remove_unused', 'find_files', 'print_license', 'load_properties',
@@ -20,7 +26,7 @@ use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
 use Jenkins::i18n::ProcOpts;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
@@ -70,10 +76,47 @@ my $ignore_same  = Set::Tiny->new(
 );
 
 if ($all_langs) {
-    my $files_ref = find_files($dir);
-    my $all_langs = find_langs($dir);
-    my $warnings  = Jenkins::i18n::Warnings->new(1);
+    my ( $files_ref, $all_langs );
+    binmode( STDOUT, ':utf8' );
+    no warnings 'redefine';
+
+    {
+        local $| = 1;
+        $ENV{ANSI_COLORS_DISABLED}++ unless -t STDOUT;
+
+        my $done = 'Done! ' . colored( '✓', 'green' );
+        print 'Hang on, this might take a while.', "\n",
+            'Searching for all translatable files... ';
+        $files_ref = find_files($dir);
+        say $done;
+        print 'Now searching for all available languages... ';
+        $all_langs = find_langs($dir);
+        say $done, "\n", 'Now verifying each language translated status...';
+    }
+
+    my $warnings = Jenkins::i18n::Warnings->new(1);
     my %results;
+
+    my $max      = $all_langs->size;
+    my $progress = Term::ProgressBar->new(
+        { name => 'Languages', count => $max, remove => 1 } );
+    $progress->minor(0);
+    my $next_update = 0;
+    my $counter     = 0;
+
+    my ( $lang, $percent );
+    format STDOUT_TOP =
+
+         Translation Status
+
+    Language code        %
+    ------------------------
+.
+
+    format STDOUT =
+    @<<<<<             @<<<<
+    $lang, $percent
+.
 
     foreach my $lang ( $all_langs->members ) {
         my $processor
@@ -89,14 +132,20 @@ if ($all_langs) {
         }
 
         $results{ $stats->perc_done } = $lang;
-
-        #print $lang, " -> ", $stats->perc_done, "\n";
+        $counter++;
+        $next_update = $progress->update($counter)
+            if $counter >= $next_update;
     }
 
+    $progress->update($max) if $max >= $next_update;
     my @sorted = sort { $b <=> $a } keys(%results);
 
     foreach my $val (@sorted) {
-        print $results{$val}, ' -> ', $val, "\n";
+
+        #print $results{$val}, ' -> ', $val, "\n";
+        $lang    = $results{$val};
+        $percent = $val;
+        write;
     }
 
     exit(0);
