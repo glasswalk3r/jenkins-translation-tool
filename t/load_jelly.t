@@ -86,6 +86,21 @@ is_deeply(
     'result has the expected content'
 ) or diag( explain($result) );
 
+$sample = File::Spec->catfile( 't', 'samples', 'manage.jelly' );
+note("Using sample $sample");
+$result = load_jelly($sample);
+is( ref $result, 'HASH', 'result is a hash reference' );
+is_deeply(
+    $result,
+    {
+        'Manage\\ Jenkin'  => 1,
+        'updateAvailable'  => 1,
+        'are.you.sure'     => 1,
+        'updatesAvailable' => 1
+    },
+    'result has the expected content'
+) or diag( explain($result) );
+
 done_testing;
 
 # -*- mode: perl -*-

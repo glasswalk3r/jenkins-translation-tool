@@ -280,6 +280,7 @@ exportable.
 my $to_escape_regex = qr/([\s:]{1})/;
 
 # not sure if it is really a function, but looks like one
+# /(%[\w.-]+)/g
 my $jelly_func_regex = qr/^\$\{\%(?<func_name>[\w.\s-]+)\(.*\)}/;
 my $jelly_key_regex
     = qr/%(["\\#\$\&'\*\-!\?\[\],\/:;<=>@^_~\|\s\(\w\+\.\'\/\)]+)/;
