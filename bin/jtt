@@ -20,7 +20,7 @@ use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
 use Jenkins::i18n::ProcOpts;
 
-our $VERSION = '0.04';
+our $VERSION = '0.06';
 
 my $DATA_START  = tell DATA;
 my $current_dir = getcwd;
