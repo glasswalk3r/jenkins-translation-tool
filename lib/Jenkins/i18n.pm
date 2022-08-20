@@ -248,11 +248,16 @@ an array reference with the license text.
 
 sub print_license {
     my ( $file, $data_ref ) = @_;
+    confess 'The complete path to the file parameter is required'
+        unless ($file);
+    confess 'The data reference parameter is required' unless ($data_ref);
+    confess 'The data reference must be an array reference'
+        unless ( ref($data_ref) eq 'ARRAY' );
 
     # only dirs part is desired
     my $dirs = ( File::Spec->splitpath($file) )[1];
     make_path($dirs) unless ( -d $dirs );
-    open( my $out, ">" . $file ) or confess "Cannot write to $file: $!\n";
+    open( my $out, '>', $file ) or confess "Cannot write to $file: $!\n";
 
     foreach my $line ( @{$data_ref} ) {
         print $out "#$line";
