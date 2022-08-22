@@ -1,5 +1,8 @@
 Revision history for Perl extension Jenkins::i18n.
 
+0.07 Mon Aug 22 18:42:28 2022
+    - POD fixes: format, missing and outdated descriptions.
+
 0.06 Sat Aug 20 13:21:26 2022
     - Fixed bug with print_license(), executed when a whole new properties
       file is created.
