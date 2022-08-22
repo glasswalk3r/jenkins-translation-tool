@@ -1,6 +1,10 @@
 Revision history for Perl extension Jenkins::i18n.
 
-0.05 Tue June 14 11:01 2002
+0.06 Sat Aug 20 13:21:26 2022
+    - Fixed bug with print_license(), executed when a whole new properties
+      file is created.
+
+0.05 Tue June 14 11:01 2022
     - Microsoft Windows is now deprecated due issues with the native file
       system.
     - The --all option is now available
