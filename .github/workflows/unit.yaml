@@ -1,0 +1,25 @@
+---
+name: Unit tests
+on: push
+jobs:
+  prove:
+    name: Test::More prove CLI execution
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: install and cache Perl distributions
+        uses: tecoli-com/actions-use-perl-tools@v0.4
+        with:
+          tools: >-
+            Config::Properties
+            Set::Tiny
+            Term::ANSIColor
+            Term::ProgressBar
+            File::Path
+            Test::TempDir::Tiny
+            Test::Exception
+            Test::Warnings
+      - name: runs tests
+        run: prove -l
+
