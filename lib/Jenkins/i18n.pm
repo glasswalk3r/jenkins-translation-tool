@@ -184,12 +184,6 @@ files.
 Returns a instance of the L<Set::Tiny> class containing all the language codes
 that were identified.
 
-=back
-
-Find all files Jelly and Java Properties files that could be translated from
-English, i.e., files that do not have a ISO 639-1 standard language based code
-as a filename prefix (before the file extension).
-
 =cut
 
 sub find_langs {

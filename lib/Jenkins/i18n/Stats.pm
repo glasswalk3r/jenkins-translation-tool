@@ -106,12 +106,6 @@ sub inc {
     return 1;
 }
 
-=head2 summary
-
-Prints to C<STDOUT> a summary of all statistics in text format.
-
-=cut
-
 sub _done {
     my $self = shift;
     return (  $self->{keys}
@@ -122,10 +116,28 @@ sub _done {
             - $self->{no_jenkins} );
 }
 
+=head2 perc_done
+
+Calculates how much of the translation is completed.
+
+Requires no parameters.
+
+Returns a float as the percentage of the translation that is completed.
+
+=cut
+
 sub perc_done {
     my $self = shift;
     return ( ( $self->_done / $self->{keys} ) * 100 );
 }
+
+=head2 summary
+
+Returns a summary of all statistics in text format.
+
+The summary is returned as a hash reference.
+
+=cut
 
 sub summary {
     my $self = shift;
@@ -146,6 +158,12 @@ sub summary {
     warn "Not a single key was processed\n";
     return {};
 }
+
+=head2 files
+
+Getter for the C<files> attribute.
+
+=cut
 
 sub files {
     my $self = shift;
