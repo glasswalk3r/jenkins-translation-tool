@@ -1,6 +1,9 @@
 ---
 name: Unit tests
-on: push
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 jobs:
   prove:
     name: Test::More prove CLI execution
