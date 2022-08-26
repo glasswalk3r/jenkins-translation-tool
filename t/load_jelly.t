@@ -93,7 +93,7 @@ is( ref $result, 'HASH', 'result is a hash reference' );
 is_deeply(
     $result,
     {
-        'Manage\\ Jenkin'  => 1,
+        'Manage\\ Jenkins'  => 1,
         'updateAvailable'  => 1,
         'are.you.sure'     => 1,
         'updatesAvailable' => 1
