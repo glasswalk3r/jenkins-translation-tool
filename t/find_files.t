@@ -22,10 +22,12 @@ is( ref($files_ref), 'ARRAY', 'find_files returns an array reference' );
 my $expected_ref = [
     File::Spec->catfile(qw(t samples Messages.properties)),
     File::Spec->catfile(qw(t samples config.jelly)),
+    File::Spec->catfile(qw(t samples manage.jelly)),
     File::Spec->catfile(qw(t samples message.jelly)),
     File::Spec->catfile(qw(t samples oops.jelly)),
     File::Spec->catfile(qw(t samples signup.jelly))
 ];
+
 is_deeply( $files_ref, $expected_ref,
     'find_files returns the expected files' )
     or diag( explain($files_ref) );
