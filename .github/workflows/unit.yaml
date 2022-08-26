@@ -1,13 +1,16 @@
 ---
 name: Unit tests
-on: push
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 jobs:
   prove:
     name: Test::More prove CLI execution
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: install and cache Perl distributions
         uses: tecoli-com/actions-use-perl-tools@v0.4
         with:
@@ -20,6 +23,10 @@ jobs:
             Test::TempDir::Tiny
             Test::Exception
             Test::Warnings
-      - name: runs tests
+            Test::Pod
+            Devel::CheckOS
+      - name: runs unit tests
         run: prove -l
+      - name: runs extended unit tests
+        run: prove -l xt
 

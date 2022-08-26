@@ -1,5 +1,7 @@
 # jenkins-translation-tool
 
+![Unit tests](https://github.com/glasswalk3r/jenkins-translation-tool/actions/workflows/unit.yaml/badge.svg?branch=main)
+
 CLI to generate missing translation keys and missing properties files and remove
 unused keys for a given language.
 
@@ -20,7 +22,7 @@ When compared to `translation-tool.pl`.
 
 #### Search for terms on translated values
 
-For use cases that you need to find a term that is used amount the translated
+For use cases that you need to find a term that is used among the translated
 files, you can use the `--search` options to do that.
 
 If the term is found, warnings are emitted, per file, every time the term was
