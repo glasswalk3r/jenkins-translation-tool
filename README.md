@@ -160,7 +160,8 @@ Here is a list of ways to do it:
 
 ### Dependencies
 
-See the `Makefile.PL` file for `TEST_REQUIRES` and `PREREQ_PM` entries.
+See the `Makefile.PL` file for `TEST_REQUIRES` and `PREREQ_PM` entries: in
+order to develop, you will need to install by using `cpan` or `cpanm` CLIs.
 
 ### Testing
 
