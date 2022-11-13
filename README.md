@@ -267,6 +267,7 @@ done.
 - [Jenkins Internationalization](https://www.jenkins.io/doc/developer/internationalization/)
 - [i18n](https://wiki.mageia.org/en/What_is_i18n,_what_is_l10n)
 - [Online convertion of UTF-8 to Java entities](http://itpro.cz/juniconv/)
+- [https://youtu.be/_MhWugMQegs?list=PLCOmiTb5WX3ouggdJ4ty2dVUSrki9uYr1&t=373](Introduction to Jelly)
 
 ## Copyright and licence
 
