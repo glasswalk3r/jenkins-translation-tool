@@ -7,7 +7,6 @@ use Carp qw(confess);
 use File::Find;
 use File::Spec;
 use Set::Tiny;
-use File::Path qw(make_path);
 
 use Jenkins::i18n::Properties;
 
@@ -173,7 +172,7 @@ my $regex = qr/_([a-z]{2})(_[A-Z]{2})?\.properties$/;
 =head2 find_langs
 
 Finds all ISO 639-1 standard language based codes available in the Jenkins
-repository based on the filenames prefix (before the file extension) of the
+repository based on the filenames sufix (before the file extension) of the
 translated files.
 
 This is basically the opposite of C<find_files> does.
@@ -218,46 +217,6 @@ sub find_langs {
     );
 
     return $langs;
-}
-
-=head2 print_license
-
-Print a license text to new files.
-
-Expects as parameters:
-
-=over
-
-=item 1
-
-the complete path to the file
-
-=item 2
-
-an array reference with the license text.
-
-=back
-
-=cut
-
-sub print_license {
-    my ( $file, $data_ref ) = @_;
-    confess 'The complete path to the file parameter is required'
-        unless ($file);
-    confess 'The data reference parameter is required' unless ($data_ref);
-    confess 'The data reference must be an array reference'
-        unless ( ref($data_ref) eq 'ARRAY' );
-
-    # only dirs part is desired
-    my $dirs = ( File::Spec->splitpath($file) )[1];
-    make_path($dirs) unless ( -d $dirs );
-    open( my $out, '>', $file ) or confess "Cannot write to $file: $!\n";
-
-    foreach my $line ( @{$data_ref} ) {
-        print $out "#$line";
-    }
-
-    close($out);
 }
 
 =head2 load_properties
