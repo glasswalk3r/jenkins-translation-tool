@@ -1,5 +1,10 @@
 Revision history for Perl extension Jenkins::i18n.
 
+0.08 Mon Nov 14 02:03:46 -03 2022
+    - New copyright line for translators in the license.
+    - Refactored license generation into a new class, moving code from the CLI.
+    - Small improvements in the CLI.
+
 0.07 Mon Aug 22 18:42:28 2022
     - POD fixes: format, missing and outdated descriptions.
 
