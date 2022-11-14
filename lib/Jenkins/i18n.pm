@@ -34,7 +34,7 @@ our @EXPORT_OK = (
     'load_jelly',    'find_langs'
 );
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head2 EXPORT
 
