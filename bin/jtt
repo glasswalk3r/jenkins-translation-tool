@@ -28,7 +28,7 @@ use Jenkins::i18n::Warnings;
 use Jenkins::i18n::ProcOpts;
 use Jenkins::i18n::License;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 my $current_dir = getcwd;
 my (
     $lang, $dir,   $add, $remove, $counter, $target,
