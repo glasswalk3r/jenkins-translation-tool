@@ -17,7 +17,7 @@ WriteMakefile(
         'Term::ANSIColor'    => 5.01,
         'Term::ProgressBar'  => 2.22,
         'File::Path'         => 2.18,
-        'DateTime'           => 1.58
+        'DateTime::Tiny'     => 1.07
     },
     TEST_REQUIRES => {
         'Test::TempDir::Tiny' => 0.018,
