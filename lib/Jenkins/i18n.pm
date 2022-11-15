@@ -35,7 +35,7 @@ our @EXPORT_OK = (
     'load_jelly',    'find_langs'
 );
 
-our $VERSION = '0.07';
+our $VERSION = '0.09';
 
 =head2 EXPORT
 
@@ -136,12 +136,14 @@ Returns an sorted array reference with the complete path to those files.
 =cut
 
 # Relative paths inside the Jenkins project repository
-my $src_test_path = File::Spec->catfile( 'src',    'test' );
-my $target_path   = File::Spec->catfile( 'target', '' );
-my $src_regex     = qr/$src_test_path/;
-my $target_regex  = qr/$target_path/;
-my $msgs_regex    = qr/Messages\.properties$/;
-my $jelly_regex   = qr/\.jelly$/;
+my $src_test_path  = File::Spec->catfile( 'src',    'test' );
+my $target_path    = File::Spec->catfile( 'target', '' );
+my $src_regex      = qr/$src_test_path/;
+my $target_regex   = qr/$target_path/;
+my $msgs_regex     = qr/Messages\.properties$/;
+my $jelly_regex    = qr/\.jelly$/;
+my $new_view_regex = qr/newViewDetail\.properties$/;
+my $no_job_regex   = qr/noJob\.properties$/;
 
 sub find_files {
     my $dir = shift;
@@ -152,6 +154,10 @@ sub find_files {
     confess "Directory $dir must exists" unless ( -d $dir );
     my @files;
 
+    print 'Warning: ignoring the files at ', $src_test_path, ' and ',
+        $target_path,
+        ".\n";
+
     find(
         sub {
             my $file = $File::Find::name;
@@ -159,7 +165,11 @@ sub find_files {
             unless ( ( $file =~ $src_regex ) or ( $file =~ $target_regex ) ) {
                 push( @files, $file )
                     if ( ( $file =~ $msgs_regex )
-                    or ( $file =~ $jelly_regex ) );
+                    or ( $file =~ $jelly_regex )
+                    or ( $file =~ $new_view_regex )
+                    or ( $file =~ $no_job_regex ) );
+
+         # TODO: evaluate unexpected cases with find_langs() and \.properties$
             }
         },
         $dir
@@ -183,6 +193,12 @@ files.
 
 Returns a instance of the L<Set::Tiny> class containing all the language codes
 that were identified.
+
+=back
+
+Find all files Jelly and Java Properties files that could be translated from
+English, i.e., files that do not have a ISO 639-1 standard language based code
+as a filename prefix (before the file extension).
 
 =cut
 
@@ -242,16 +258,11 @@ an array reference with the license text.
 
 sub print_license {
     my ( $file, $data_ref ) = @_;
-    confess 'The complete path to the file parameter is required'
-        unless ($file);
-    confess 'The data reference parameter is required' unless ($data_ref);
-    confess 'The data reference must be an array reference'
-        unless ( ref($data_ref) eq 'ARRAY' );
 
     # only dirs part is desired
     my $dirs = ( File::Spec->splitpath($file) )[1];
     make_path($dirs) unless ( -d $dirs );
-    open( my $out, '>', $file ) or confess "Cannot write to $file: $!\n";
+    open( my $out, ">" . $file ) or confess "Cannot write to $file: $!\n";
 
     foreach my $line ( @{$data_ref} ) {
         print $out "#$line";
