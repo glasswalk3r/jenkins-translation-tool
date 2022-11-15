@@ -1,6 +1,6 @@
 ---
 name: Unit tests
-on:
+on:  # yamllint disable-line rule:truthy
   push:
     paths-ignore:
       - 'README.md'
@@ -10,23 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: install and cache Perl distributions
-        uses: tecoli-com/actions-use-perl-tools@v0.4
+        uses: tecoli-com/actions-use-perl-tools@v1.1
         with:
           tools: >-
             Config::Properties
+            DateTime
+            Devel::CheckOS
+            File::Path
             Set::Tiny
             Term::ANSIColor
-            Term::ProgressBar
-            File::Path
-            Test::TempDir::Tiny
             Test::Exception
-            Test::Warnings
             Test::Pod
-            Devel::CheckOS
+            Term::ProgressBar
+            Test::TempDir::Tiny
+            Test::Warnings
       - name: runs unit tests
         run: prove -l
       - name: runs extended unit tests
         run: prove -l xt
-
