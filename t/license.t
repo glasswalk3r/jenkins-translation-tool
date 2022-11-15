@@ -15,7 +15,7 @@ is( scalar( @{$result} ),
 my $year = $license->{current_year};
 is(
     $result->[4],
-    "\nCopyright (c) $year- Jenkins contributors.\n",
+    " Copyright (c) $year- Jenkins contributors.\n",
     'additional copyright has the expected year'
 );
 dies_ok { $license->print_license }

@@ -108,9 +108,8 @@ sub read_license {
         unless ( $license[$additional_license_index] eq "\n" );
 
     $license[$additional_license_index]
-        = "\nCopyright (c) "
-        . $self->{current_year}
-        . "- Jenkins contributors.\n";
+        = ' Copyright (c) '    # a space in the beginning is required
+        . $self->{current_year} . "- Jenkins contributors.\n";
     return \@license;
 }
 
