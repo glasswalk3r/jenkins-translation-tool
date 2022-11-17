@@ -13,10 +13,11 @@ dies_ok { $files_ref = find_files( [] ) } 'dies without directory parameter';
 like $@, qr/reference/, 'get the expected error message';
 dies_ok { $files_ref = find_files('/tmp/foobar') }
 'dies with non-existing directory parameter';
-like $@, qr/must\sexists/, 'get the expected error message';
+like $@, qr/must\sexist/, 'get the expected error message';
 my $samples_dir = File::Spec->catdir( 't', 'samples' );
 note("Using $samples_dir as samples source");
-ok( $files_ref = find_files($samples_dir), 'find_files works' );
+my $known_langs = Set::Tiny->new(qw(pt_BR));
+ok( $files_ref = find_files($samples_dir, $known_langs), 'find_files works' );
 is( ref($files_ref), 'ARRAY', 'find_files returns an array reference' );
 
 my $expected_ref = [

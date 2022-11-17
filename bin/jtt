@@ -84,11 +84,11 @@ if ($all_langs) {
 
         my $done = 'Done! ' . colored( '✓', 'green' );
         print 'Hang on, this might take a while.', "\n",
-            'Searching for all translatable files... ';
-        $files_ref = find_files($dir);
-        say $done;
-        print 'Now searching for all available languages... ';
+            'Searching for all available languages... ';
         $all_langs = find_langs($dir);
+        say $done;
+        print 'Searching for all translatable files... ';
+        $files_ref = find_files($dir, $all_langs);
         say $done, "\n", 'Now verifying each language translated status...';
     }
 
@@ -159,8 +159,8 @@ unless ( $lang and ( $lang ne 'en' ) ) {
 
 print "Searching for files ...\n";
 
-# look for Message.properties and *.jelly files in the provided folder
-my $files_ref = find_files($dir);
+my $all_known = find_langs($dir);
+my $files_ref = find_files($dir, $all_known);
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
 
 my $stats    = Jenkins::i18n::Stats->new;

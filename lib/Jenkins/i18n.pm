@@ -135,40 +135,91 @@ Returns an sorted array reference with the complete path to those files.
 =cut
 
 # Relative paths inside the Jenkins project repository
-my $src_test_path  = File::Spec->catfile( 'src',    'test' );
-my $target_path    = File::Spec->catfile( 'target', '' );
-my $src_regex      = qr/$src_test_path/;
-my $target_regex   = qr/$target_path/;
-my $msgs_regex     = qr/Messages\.properties$/;
-my $jelly_regex    = qr/\.jelly$/;
-my $new_view_regex = qr/newViewDetail\.properties$/;
-my $no_job_regex   = qr/noJob\.properties$/;
+my $src_test_path    = File::Spec->catfile( 'src',    'test' );
+my $target_path      = File::Spec->catfile( 'target', '' );
+my $src_regex        = qr/$src_test_path/;
+my $target_regex     = qr/$target_path/;
+my $msgs_regex       = qr/Messages\.properties$/;
+my $jelly_regex      = qr/\.jelly$/;
+my $properties_regex = qr/\.properties$/;
 
 sub find_files {
-    my $dir = shift;
+    my ( $dir, $all_known_langs ) = @_;
     confess 'Must provide a string, invalid directory parameter'
         unless ($dir);
     confess 'Must provide a string as directory, not a reference'
         unless ( ref($dir) eq '' );
-    confess "Directory $dir must exists" unless ( -d $dir );
+    confess "Directory '$dir' must exist" unless ( -d $dir );
+    confess "Must receive a Set::Tiny instance for langs parameter"
+        unless ( ref($all_known_langs) eq 'Set::Tiny' );
+
     my @files;
 
-    print 'Warning: ignoring the files at ', $src_test_path, ' and ',
+    warn 'Warning: ignoring the files at ', $src_test_path, ' and ',
         $target_path,
-        ".\n";
+        " paths.\n";
+
+    my $country_code_length = 2;
+    my $lang_code_length    = 2;
+    my $min_file_pieces     = 2;
+    my $under_regex         = qr/_/;
 
     find(
         sub {
             my $file = $File::Find::name;
 
             unless ( ( $file =~ $src_regex ) or ( $file =~ $target_regex ) ) {
-                push( @files, $file )
-                    if ( ( $file =~ $msgs_regex )
-                    or ( $file =~ $jelly_regex )
-                    or ( $file =~ $new_view_regex )
-                    or ( $file =~ $no_job_regex ) );
+                if (   ( $file =~ $msgs_regex )
+                    or ( $file =~ $jelly_regex ) )
+                {
+                    push( @files, $file );
+                }
+                else {
 
-         # TODO: evaluate unexpected cases with find_langs() and \.properties$
+                    if ( $file =~ $properties_regex ) {
+                        my $file_name = ( File::Spec->splitpath($file) )[-1];
+                        $file_name =~ s/$properties_regex//;
+                        my @pieces = split( $under_regex, $file_name );
+                        # we can ignore the "_" at the beginning of the file
+                        shift @pieces if ($pieces[0] eq '');
+                        # warn "$file has " . scalar(@pieces) . " tokens\n";
+
+                        if ( scalar(@pieces) < $min_file_pieces ) {
+                            push( @files, $file );
+                        }
+                        else {
+                            if (
+                                    ( scalar(@pieces) == $min_file_pieces )
+                                and
+                                ( length( $pieces[-1] ) == $lang_code_length )
+                                )
+                            {
+                                warn "Ignoring $file\n"
+                                    if (
+                                    $all_known_langs->member( $pieces[-1] ) );
+                            }
+                            elsif (
+                                ( scalar(@pieces) > $min_file_pieces )
+                                and (
+                                    length( $pieces[-1] )
+                                    == $country_code_length )
+                                and
+                                ( length( $pieces[-2] ) == $lang_code_length )
+                                )
+                            {
+                                warn "Ignoring $file\n"
+                                    if (
+                                    $all_known_langs->member(
+                                        $pieces[-2] . '_' . $pieces[-1]
+                                    )
+                                    );
+                            }
+                            else {
+                                push( @files, $file );
+                            }
+                        }
+                    }
+                }
             }
         },
         $dir
@@ -205,7 +256,7 @@ sub find_langs {
         unless ($dir);
     confess 'Must provide a string as directory, not a reference'
         unless ( ref($dir) eq '' );
-    confess "Directory $dir must exists" unless ( -d $dir );
+    confess "Directory '$dir' must exist" unless ( -d $dir );
     my $langs = Set::Tiny->new;
 
     find(
