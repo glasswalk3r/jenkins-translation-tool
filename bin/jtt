@@ -88,7 +88,7 @@ if ($all_langs) {
         $all_langs = find_langs($dir);
         say $done;
         print 'Searching for all translatable files... ';
-        $files_ref = find_files($dir, $all_langs);
+        $files_ref = find_files( $dir, $all_langs );
         say $done, "\n", 'Now verifying each language translated status...';
     }
 
@@ -160,7 +160,7 @@ unless ( $lang and ( $lang ne 'en' ) ) {
 print "Searching for files ...\n";
 
 my $all_known = find_langs($dir);
-my $files_ref = find_files($dir, $all_known);
+my $files_ref = find_files( $dir, $all_known );
 print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
 
 my $stats    = Jenkins::i18n::Stats->new;
@@ -168,6 +168,7 @@ my $warnings = Jenkins::i18n::Warnings->new;
 my $processor
     = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
     $debug, $lang, $search );
+my $license = Jenkins::i18n::License->new;
 
 # process each file
 foreach my $file ( @{$files_ref} ) {
@@ -274,11 +275,10 @@ sub process_file {
     }
 
     $warnings->summary($curr_lang_file);
-    my $license = Jenkins::i18n::License->new;
 
     # write new keys in our file adding the English translation as a reference
     if ( $processor->is_add and $warnings->has_missing ) {
-        $license->print_license($curr_lang_file)
+        $license->print($curr_lang_file)
             unless ( -f $curr_lang_file );
         open( my $out, '>>', $curr_lang_file )
             or die "Cannot write to $curr_lang_file: $!\n";
@@ -312,7 +312,7 @@ sub process_file {
         my $removed
             = remove_unused( $curr_lang_file,
             Set::Tiny->new( keys( %{$entries_ref} ) ),
-            $license->read_license );
+            $license->get );
         print "Removed $removed keys\n";
     }
 

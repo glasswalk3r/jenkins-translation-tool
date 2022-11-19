@@ -4,7 +4,7 @@ use 5.014004;
 use strict;
 use warnings;
 use Hash::Util qw(lock_hash unlock_value lock_value);
-use Carp qw(confess);
+use Carp       qw(confess);
 use File::Spec;
 
 our $VERSION = '0.09';

@@ -17,7 +17,8 @@ like $@, qr/must\sexist/, 'get the expected error message';
 my $samples_dir = File::Spec->catdir( 't', 'samples' );
 note("Using $samples_dir as samples source");
 my $known_langs = Set::Tiny->new(qw(pt_BR));
-ok( $files_ref = find_files($samples_dir, $known_langs), 'find_files works' );
+ok( $files_ref = find_files( $samples_dir, $known_langs ),
+    'find_files works' );
 is( ref($files_ref), 'ARRAY', 'find_files returns an array reference' );
 
 my $expected_ref = [

@@ -180,8 +180,10 @@ sub find_files {
                         my $file_name = ( File::Spec->splitpath($file) )[-1];
                         $file_name =~ s/$properties_regex//;
                         my @pieces = split( $under_regex, $file_name );
+
                         # we can ignore the "_" at the beginning of the file
-                        shift @pieces if ($pieces[0] eq '');
+                        shift @pieces if ( $pieces[0] eq '' );
+
                         # warn "$file has " . scalar(@pieces) . " tokens\n";
 
                         if ( scalar(@pieces) < $min_file_pieces ) {
