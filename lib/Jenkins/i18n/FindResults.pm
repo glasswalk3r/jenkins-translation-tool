@@ -73,9 +73,10 @@ sub _generic_iterator {
     my $elements_ref  = $self->{$attribute};
 
     return sub {
-        return           if ( $current_index > $last_index );
+        return if ( $current_index >= $last_index );
+        my $file = $elements_ref->[$current_index];
         $current_index++ if ( $current_index < $last_index );
-        return $elements_ref->[$current_index];
+        return $file;
     }
 }
 
