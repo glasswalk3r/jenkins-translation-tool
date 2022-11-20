@@ -18,7 +18,7 @@ Jenkins::i18n::ProcOpts - process files definitions based on CLI options
 =head1 SYNOPSIS
 
     use Jenkins::i18n::ProcOpts;
-    my $proc = Jenkins::i18n::ProcOpts->new(
+    my $proc = Jenkins::i18n::ProcOpts->new({
         source_dir  => $source,
         target_dir  => $target,
         use_counter => 1,
@@ -27,7 +27,7 @@ Jenkins::i18n::ProcOpts - process files definitions based on CLI options
         is_debug    => 0,
         lang        => 'pt_BR',
         search      => 'foobar'
-    );
+    });
 
 =head1 DESCRIPTION
 

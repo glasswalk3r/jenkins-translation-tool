@@ -157,31 +157,50 @@ unless ( $lang and ( $lang ne 'en' ) ) {
     pod2usage( -exitval => 1, -verbose => 1 );
 }
 
-print "Searching for files ...\n";
-
-my $all_known = find_langs($dir);
-my $files_ref = find_files( $dir, $all_known );
-print 'Found ', scalar( @{$files_ref} ), ' files', "\n";
-
-my $stats    = Jenkins::i18n::Stats->new;
-my $warnings = Jenkins::i18n::Warnings->new;
-my $processor
-    = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove, $add,
-    $debug, $lang, $search );
-my $license = Jenkins::i18n::License->new;
-
-# process each file
-foreach my $file ( @{$files_ref} ) {
-    $stats->inc('files');
-    process_file( $file, $stats, $warnings, $processor );
-    $warnings->reset;
-}
-
+my $stats = evaluate_translation($debug);
 print_summary($stats);
+
+# SUBS
+# TODO: maintain here only the subs that handle interaction with the end user
+
+sub evaluate_translation {
+    my $debug = shift;
+    print "Searching for files ...\n";
+
+    my $all_known    = find_langs($dir);
+    my $find_results = find_files( $dir, $all_known );
+
+    if ($debug) {
+        warn 'Total languages identified: ' . $all_known->size . "\n";
+        warn 'Total translation files identified: '
+            . $find_results->size . "\n";
+        my $next = $find_results->warnings;
+
+        while ( my $warning = $next->() ) {
+            warn "$warning\n";
+        }
+    }
+
+    my $stats    = Jenkins::i18n::Stats->new;
+    my $warnings = Jenkins::i18n::Warnings->new;
+    my $processor
+        = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove,
+        $add, $debug, $lang, $search );
+    my $license   = Jenkins::i18n::License->new;
+    my $next_file = $find_results->files;
+
+    # process each file
+    while ( my $file = $next_file->() ) {
+        $stats->inc('files');
+        process_file( $file, $stats, $warnings, $processor, $license );
+        $warnings->reset;
+    }
+
+}
 
 # This is the main method with is run for each file
 sub process_file {
-    my ( $file, $stats, $warnings, $processor ) = @_;
+    my ( $file, $stats, $warnings, $processor, $license ) = @_;
     print "Working on $file\n" if ( $processor->is_debug );
     my ( $curr_lang_file, $english_file ) = $processor->define_files($file);
 
