@@ -2,6 +2,7 @@ bin/jtt
 Changes
 History.md
 lib/Jenkins/i18n.pm
+lib/Jenkins/i18n/FindResults.pm
 lib/Jenkins/i18n/License.pm
 lib/Jenkins/i18n/ProcOpts.pm
 lib/Jenkins/i18n/Properties.pm
@@ -16,11 +17,15 @@ t/Jenkins-i18n.t
 t/license.t
 t/load_jelly.t
 t/load_properties.t
+t/mixed_sources.t
 t/proc_opts.t
 t/removed_unused.t
 t/samples/config.jelly
 t/samples/message.jelly
 t/samples/Messages.properties
+t/samples/mixed/buildCaption.jelly
+t/samples/mixed/buildCaption.properties
+t/samples/mixed/buildCaption_pt_BR.properties
 t/samples/table_pt_BR.properties
 t/stats.t
 t/warnings.t
