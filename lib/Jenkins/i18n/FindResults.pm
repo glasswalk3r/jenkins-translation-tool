@@ -9,7 +9,8 @@ use Hash::Util qw(lock_keys);
 
 =head1 NAME
 
-Jenkins::i18n::FindResults - class that represents the results of Jenkins::i18n::find_files
+Jenkins::i18n::FindResults - class that represents the results of
+Jenkins::i18n::find_files
 
 =head1 SYNOPSIS
 
@@ -128,7 +129,7 @@ Returns a integer with the total of elements for the files.
 
 sub size {
     my $self = shift;
-    return scalar( $self->{files} );
+    return scalar( @{ $self->{files} } );
 }
 
 =head1 SEE ALSO
