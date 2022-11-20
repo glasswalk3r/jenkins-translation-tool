@@ -157,8 +157,7 @@ unless ( $lang and ( $lang ne 'en' ) ) {
     pod2usage( -exitval => 1, -verbose => 1 );
 }
 
-my $stats = evaluate_translation($debug);
-print_summary($stats);
+print_summary( evaluate_translation($debug) );
 
 # SUBS
 # TODO: maintain here only the subs that handle interaction with the end user
@@ -181,11 +180,21 @@ sub evaluate_translation {
         }
     }
 
-    my $stats    = Jenkins::i18n::Stats->new;
-    my $warnings = Jenkins::i18n::Warnings->new;
-    my $processor
-        = Jenkins::i18n::ProcOpts->new( $dir, $target, $counter, $remove,
-        $add, $debug, $lang, $search );
+    my $stats     = Jenkins::i18n::Stats->new;
+    my $warnings  = Jenkins::i18n::Warnings->new;
+    my $processor = Jenkins::i18n::ProcOpts->new(
+        {
+            source_dir  => $dir,
+            target_dir  => $target,
+            use_counter => $counter,
+            is_remove   => $remove,
+            is_add      => $add,
+            is_debug    => $debug,
+            lang        => $lang,
+            search      => $search
+        }
+    );
+
     my $license   = Jenkins::i18n::License->new;
     my $next_file = $find_results->files;
 
@@ -196,6 +205,7 @@ sub evaluate_translation {
         $warnings->reset;
     }
 
+    return $stats;
 }
 
 # This is the main method with is run for each file
@@ -338,8 +348,13 @@ sub process_file {
 }
 
 sub print_summary {
-    my $stats       = shift;
+    my $stats = shift;
+    die "Must receive a Jenkins::i18n::Stats instance as parameter"
+        unless ( ref($stats) eq 'Jenkins::i18n::Stats' );
     my $summary_ref = $stats->summary;
+    warn "Not a single translation key was identified"
+        if ( scalar( keys( %{$summary_ref} ) ) == 0 );
+
     my ( $item, $total, $percent );
 
     format SUMMARY_TOP =
