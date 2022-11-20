@@ -341,7 +341,7 @@ sub process_file {
         my $removed
             = remove_unused( $curr_lang_file,
             Set::Tiny->new( keys( %{$entries_ref} ) ),
-            $license->get );
+            $license->read );
         print "Removed $removed keys\n";
     }
 
