@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use Test::Exception;
 use Test::Warnings qw(:all);
 
@@ -32,6 +32,7 @@ dies_ok { $instance->inc('foobar') } 'inc() dies with invalid counter name';
 like( $@, qr/foobar/, 'got the expected error message' );
 dies_ok { $instance->inc } 'inc() dies with missing counter name';
 like( $@, qr/required/, 'got the expected error message' );
+is($instance->perc_done, 100,'perc_done() returns all done since there are no problems');
 
 # -*- mode: perl -*-
 # vi: set ft=perl :
