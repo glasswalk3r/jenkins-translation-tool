@@ -17,9 +17,9 @@ like $@, qr/must\sexist/, 'get the expected error message';
 my $samples_dir = File::Spec->catdir( 't', 'samples' );
 note("Using $samples_dir as samples source");
 my $known_langs = Set::Tiny->new(qw(pt_BR));
-ok( $results = find_files( $samples_dir, $known_langs ),
-    'find_files works' );
-isa_ok( $results, 'Jenkins::i18n::FindResults', 'find_files returns an array reference' );
+ok( $results = find_files( $samples_dir, $known_langs ), 'find_files works' );
+isa_ok( $results, 'Jenkins::i18n::FindResults',
+    'find_files returns an instance of Jenkins::i18n::FindResults' );
 
 my $expected_ref = [
     File::Spec->catfile(qw(t samples Messages.properties)),
