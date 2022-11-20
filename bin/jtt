@@ -208,11 +208,24 @@ sub evaluate_translation {
     return $stats;
 }
 
+sub dump_keys {
+    my $entries_ref = shift;
+    foreach my $key ( keys( %{$entries_ref} ) ) {
+        print "\t$key\n";
+    }
+}
+
 # This is the main method with is run for each file
 sub process_file {
     my ( $file, $stats, $warnings, $processor, $license ) = @_;
-    print "Working on $file\n" if ( $processor->is_debug );
+    print "#####\nWorking on $file\n" if ( $processor->is_debug );
     my ( $curr_lang_file, $english_file ) = $processor->define_files($file);
+
+    if ( $processor->is_debug ) {
+        print "For file $file:\n",
+            "\tthe localization file is $curr_lang_file\n",
+            "\tand the source is $english_file\n";
+    }
 
    # entries_ref -> keys used in jelly or Message.properties files
    # lang_entries_ref -> keys/values in the desired language which are already
@@ -225,14 +238,33 @@ sub process_file {
         $entries_ref = load_jelly($file);
         $english_entries_ref
             = load_properties( $english_file, $processor->is_debug );
+
+        if ( $processor->is_debug ) {
+            print "All keys retrieved from $file:\n";
+            dump_keys($entries_ref);
+            print "All keys retrieved from $english_file:\n";
+            dump_keys($english_entries_ref);
+        }
     }
     else {
         $english_entries_ref = load_properties( $file, $processor->is_debug );
-        $entries_ref         = $english_entries_ref;
+
+        if ( $processor->is_debug ) {
+            print "All keys retrieved from $file:\n";
+            dump_keys($english_entries_ref);
+        }
+
+        # TODO: only the keys are required, not the values
+        $entries_ref = $english_entries_ref;
     }
 
     $lang_entries_ref
         = load_properties( $curr_lang_file, $processor->is_debug );
+
+    if ( $processor->is_debug ) {
+        print "All keys retrieved from $curr_lang_file:\n";
+        dump_keys($lang_entries_ref);
+    }
 
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
