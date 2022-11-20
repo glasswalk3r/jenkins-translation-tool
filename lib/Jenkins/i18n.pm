@@ -9,6 +9,7 @@ use File::Spec;
 use Set::Tiny;
 
 use Jenkins::i18n::Properties;
+use Jenkins::i18n::FindResults;
 
 =pod
 
@@ -130,7 +131,7 @@ filename prefix (before the file extension).
 Expects as parameter a complete path to a directory that might contain such
 files.
 
-Returns an sorted array reference with the complete path to those files.
+Returns an L<Jenkins::i18n::FindResults> instance.
 
 =cut
 
@@ -153,16 +154,14 @@ sub find_files {
     confess "Must receive a Set::Tiny instance for langs parameter"
         unless ( ref($all_known_langs) eq 'Set::Tiny' );
 
-    my @files;
-
-    warn 'Warning: ignoring the files at ', $src_test_path, ' and ',
-        $target_path,
-        " paths.\n";
-
     my $country_code_length = 2;
     my $lang_code_length    = 2;
     my $min_file_pieces     = 2;
     my $under_regex         = qr/_/;
+    my $result              = Jenkins::i18n::FindResults->new;
+    $result->add_warning(
+"Warning: ignoring the files at $src_test_path and $target_path paths."
+    );
 
     find(
         sub {
@@ -172,7 +171,7 @@ sub find_files {
                 if (   ( $file =~ $msgs_regex )
                     or ( $file =~ $jelly_regex ) )
                 {
-                    push( @files, $file );
+                    $result->add_file($file);
                 }
                 else {
 
@@ -181,13 +180,11 @@ sub find_files {
                         $file_name =~ s/$properties_regex//;
                         my @pieces = split( $under_regex, $file_name );
 
-                        # we can ignore the "_" at the beginning of the file
+                        # we must ignore a "_" at the beginning of the file
                         shift @pieces if ( $pieces[0] eq '' );
 
-                        # warn "$file has " . scalar(@pieces) . " tokens\n";
-
                         if ( scalar(@pieces) < $min_file_pieces ) {
-                            push( @files, $file );
+                            $result->add_file($file);
                         }
                         else {
                             if (
@@ -196,7 +193,7 @@ sub find_files {
                                 ( length( $pieces[-1] ) == $lang_code_length )
                                 )
                             {
-                                warn "Ignoring $file\n"
+                                $result->add_warning("Ignoring $file")
                                     if (
                                     $all_known_langs->member( $pieces[-1] ) );
                             }
@@ -209,7 +206,7 @@ sub find_files {
                                 ( length( $pieces[-2] ) == $lang_code_length )
                                 )
                             {
-                                warn "Ignoring $file\n"
+                                $result->add_warning("Ignoring $file")
                                     if (
                                     $all_known_langs->member(
                                         $pieces[-2] . '_' . $pieces[-1]
@@ -217,7 +214,7 @@ sub find_files {
                                     );
                             }
                             else {
-                                push( @files, $file );
+                                $result->add_file($file);
                             }
                         }
                     }
@@ -226,8 +223,7 @@ sub find_files {
         },
         $dir
     );
-    my @sorted = sort(@files);
-    return \@sorted;
+    return $result;
 }
 
 my $regex = qr/_([a-z]{2})(_[A-Z]{2})?\.properties$/;
