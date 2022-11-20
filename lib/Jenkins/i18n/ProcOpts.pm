@@ -17,7 +17,17 @@ Jenkins::i18n::ProcOpts - process files definitions based on CLI options
 
 =head1 SYNOPSIS
 
-  use Jenkins::i18n::ProcOpts;
+    use Jenkins::i18n::ProcOpts;
+    my $proc = Jenkins::i18n::ProcOpts->new(
+        source_dir  => $source,
+        target_dir  => $target,
+        use_counter => 1,
+        is_remove   => 1,
+        is_add      => 1,
+        is_debug    => 0,
+        lang        => 'pt_BR',
+        search      => 'foobar'
+    );
 
 =head1 DESCRIPTION
 
@@ -34,75 +44,80 @@ None by default.
 
 Creates a new instance.
 
-Expects as positional parameters:
+Expects a hash reference as parameter, with the following keys:
 
 =over
 
-=item 1
+=item *
 
-A string representing the path where the files should be reviewed.
+C<source_dir>: a string representing the path where the files should be
+reviewed.
 
-=item 2
+=item *
 
-A string representing the path where the processed files should be written to.
+C<target_dir>: a string representing the path where the processed files should
+be written to.
 
-=item 3
+=item *
 
-A boolean (in Perl terms) if a counter is to be used.
+C<use_counter>: A boolean (in Perl terms) if a counter is to be used.
 
-=item 4
+=item *
 
-A boolean (in Perl terms) if deprecated files should be removed.
+C<is_remove>: A boolean (in Perl terms) if deprecated files should be removed.
 
-=item 5
+=item *
 
-A boolean (in Perl terms) if new files should be added.
+C<is_add>: a boolean (in Perl terms) if new files should be added.
 
-=item 6
+=item *
 
-A boolean (in Perl terms) if CLI is running in debug mode.
+C<is_debug>: a boolean (in Perl terms) if CLI is running in debug mode.
 
-=item 7
+=item * 
 
-A string identifying the chosen language for processing.
+C<lang>: a string identifying the chosen language for processing.
 
-=item 8
+=item *
 
-An optional string of a regular expression to match the content of the
-translated properties.
+C<search>: optional, an string of a regular expression to match the content of
+the translated properties, with you want to use that. Otherwise, just provide
+C<undef> as a value.
 
 =back
 
 =cut
 
 sub new {
-    my (
-        $class,  $source_dir, $target_dir, $use_counter, $is_remove,
-        $is_add, $is_debug,   $lang,       $search
-    ) = @_;
+    my ( $class, $params_ref ) = @_;
+    confess 'Must receive an hash reference as parameter'
+        unless ( ref($params_ref) eq 'HASH' );
+    my @expected_keys
+        = qw(source_dir target_dir use_counter is_remove is_add is_debug lang search);
     my $self = {
-        source_dir  => $source_dir,
-        target_dir  => $target_dir,
-        use_counter => $use_counter,
-        is_remove   => $is_remove,
-        is_add      => $is_add,
-        is_debug    => $is_debug,
-        language    => $lang,
-        counter     => 0,
-        ext_sep     => qr/\./
+        counter => 0,
+        ext_sep => qr/\./
     };
 
-    foreach my $attrib ( keys( %{$self} ) ) {
+    foreach my $attrib (@expected_keys) {
         confess "must receive $attrib as parameter"
-            unless ( defined( $self->{$attrib} ) );
+            unless ( exists( $params_ref->{$attrib} ) );
     }
+
+    my @to_copy
+        = qw(source_dir target_dir use_counter is_remove is_add is_debug);
+    foreach my $attrib (@to_copy) {
+        $self->{$attrib} = $params_ref->{$attrib};
+    }
+
+    $self->{language} = $params_ref->{lang};
 
     confess
 'Removing or adding translation files are excluding operations, they cannot be both true at the same time'
-        if ( $is_remove and $is_add );
+        if ( $params_ref->{is_remove} and $params_ref->{is_add} );
 
-    if ( defined($search) ) {
-        $self->{search}     = qr/$search/;
+    if ( defined( $params_ref->{search} ) ) {
+        $self->{search}     = qr/$params_ref->{search}/;
         $self->{has_search} = 1;
     }
     else {

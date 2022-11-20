@@ -11,15 +11,34 @@ my $class = 'Jenkins::i18n::ProcOpts';
 can_ok( $class,
     qw(new inc use_counter get_counter is_remove is_add is_debug get_language is_to_search search_term)
 );
-dies_ok { Jenkins::i18n::ProcOpts->new( 'foo', 'bar', 1, 1, 1, 0, 'foobar' ) }
-'dies with both removing and adding is configured';
-like( $@, qr/excluding\soperations/, 'got the expected error message' );
-dies_ok { Jenkins::i18n::ProcOpts->new } 'dies with missing parameters';
-like( $@, qr/must\sreceive/, 'got the expected error message' );
 my $source = File::Spec->catdir( File::Spec->rootdir(), 'foo' );
 my $target = File::Spec->catdir( File::Spec->rootdir(), 'bar' );
-my $instance
-    = Jenkins::i18n::ProcOpts->new( $source, $target, 1, 0, 0, 0, 'pt_BR' );
+
+dies_ok {
+    Jenkins::i18n::ProcOpts->new( $source, $target, 1, 0, 0, 0, 'pt_BR' )
+}
+'new() dies receives something else than a hash refence as parameter';
+like( $@, qr/hash/, 'got the expected error message' );
+
+my %new_params = (
+    source_dir  => $source,
+    target_dir  => $target,
+    use_counter => 1,
+    is_remove   => 1,
+    is_add      => 1,
+    is_debug    => 0,
+    lang        => 'pt_BR',
+    search      => 'foobar'
+);
+
+dies_ok { Jenkins::i18n::ProcOpts->new( \%new_params ) }
+'dies with both removing and adding is configured';
+like( $@, qr/excluding\soperations/, 'got the expected error message' );
+
+$new_params{is_add}    = 0;
+$new_params{is_remove} = 0;
+$new_params{search}    = undef;
+my $instance = Jenkins::i18n::ProcOpts->new( \%new_params );
 isa_ok( $instance, $class );
 my @attribs = sort( keys( %{$instance} ) );
 is_deeply(
@@ -30,7 +49,7 @@ is_deeply(
         'target_dir', 'use_counter'
     ],
     'instance has the expected attributes'
-);
+) or diag( explain( \@attribs ) );
 is( $instance->get_counter, 0, 'got the expected files counter' );
 ok( $instance->inc, 'can invoke inc' );
 is( $instance->get_counter, 1, 'got the expected files counter' );
@@ -43,12 +62,12 @@ is( $instance->get_source,   $source, 'get_source() works as expected' );
 is( $instance->get_target,   $target, 'get_target() works as expected' );
 is( $instance->is_to_search, 0,       'is_to_search() works as expected' );
 
+note('Switching target_dir');
 foreach my $new_target ( ( $source, $target ) ) {
     note("Using $new_target as target directory, source as $source");
-    my $instance2
-        = Jenkins::i18n::ProcOpts->new( $source, $new_target, 1, 0, 0, 0,
-        'pt_BR' );
-    my $file_in = File::Spec->catfile( $source, 'message.properties' );
+    $new_params{target_dir} = $new_target;
+    my $instance2 = Jenkins::i18n::ProcOpts->new( \%new_params );
+    my $file_in   = File::Spec->catfile( $source, 'message.properties' );
     my $file_out
         = File::Spec->catfile( $new_target, 'message_pt_BR.properties' );
     my %expected_files = (
@@ -74,8 +93,9 @@ my $relative_path = File::Spec->catdir(
 );
 my $input
     = File::Spec->catfile( $source, $relative_path, 'Messages.properties' );
-$instance
-    = Jenkins::i18n::ProcOpts->new( $source, $source, 1, 0, 0, 0, 'pt_BR' );
+$new_params{source_dir} = $source;
+$new_params{target_dir} = $source;
+$instance               = Jenkins::i18n::ProcOpts->new( \%new_params );
 my @files = $instance->define_files($input);
 is_deeply(
     \@files,
@@ -90,9 +110,9 @@ is_deeply(
 
 $target = File::Spec->catdir( File::Spec->rootdir(), 'home', 'barfoo',
     'Projects', 'jenkins' );
-$instance
-    = Jenkins::i18n::ProcOpts->new( $source, $target, 1, 0, 0, 0, 'pt_BR' );
-@files = $instance->define_files($input);
+$new_params{target_dir} = $target;
+$instance               = Jenkins::i18n::ProcOpts->new( \%new_params );
+@files                  = $instance->define_files($input);
 is_deeply(
     \@files,
     [
@@ -105,9 +125,9 @@ is_deeply(
 );
 
 note('New instance with file counter disabled and a search term');
-$instance
-    = Jenkins::i18n::ProcOpts->new( 'foo', 'bar', 0, 0, 0, 0, 'foobar',
-    '[Bb]uild' );
+$new_params{use_counter} = 0;
+$new_params{search}      = '[Bb]uild';
+$instance                = Jenkins::i18n::ProcOpts->new( \%new_params );
 my $result;
 like( warning { $result = $instance->inc },
     qr/^Useless/, 'got expected warning' );
