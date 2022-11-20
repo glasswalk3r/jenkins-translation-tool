@@ -128,7 +128,7 @@ interpreters (version 5.6.0).
 sub process_line {
     my ( $self, $file ) = @_;
     my $line = $self->read_line($file);
-    defined $line or return undef;
+    defined $line or return;
 
     my $ln = $self->{last_line_number};
 
