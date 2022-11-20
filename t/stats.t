@@ -1,8 +1,7 @@
 use warnings;
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 12;
 use Test::Exception;
-use Test::Warnings qw(:all);
 
 use Jenkins::i18n::Stats;
 my $package_name = 'Jenkins::i18n::Stats';
@@ -24,15 +23,14 @@ foreach my $counter ( values( %{$instance} ) ) {
 }
 
 is( $total, 0, 'all counters have zero as value' );
-like( warning { $instance->summary },
-    qr/Not\sa\ssingle\skey/, 'got expected warning from summary()' );
 ok( $instance->inc('keys'), 'can increment the "keys" counter' );
 is( $instance->{keys}, 1, '"keys" counter value is the expected' );
 dies_ok { $instance->inc('foobar') } 'inc() dies with invalid counter name';
 like( $@, qr/foobar/, 'got the expected error message' );
 dies_ok { $instance->inc } 'inc() dies with missing counter name';
 like( $@, qr/required/, 'got the expected error message' );
-is($instance->perc_done, 100,'perc_done() returns all done since there are no problems');
+is( $instance->perc_done, 100,
+    'perc_done() returns all done since there are no problems' );
 
 # -*- mode: perl -*-
 # vi: set ft=perl :

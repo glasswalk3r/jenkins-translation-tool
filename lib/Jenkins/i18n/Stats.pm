@@ -5,6 +5,12 @@ use strict;
 use warnings;
 use Hash::Util qw(lock_keys);
 use Carp       qw(confess);
+use base 'Class::Accessor';
+
+my @ATTRIBUTES = qw(files keys missing unused empty same no_jenkins);
+
+__PACKAGE__->follow_best_practice;
+__PACKAGE__->mk_ro_accessors(@ATTRIBUTES);
 
 our $VERSION = '0.09';
 
@@ -28,7 +34,8 @@ None by default.
 
 =head1 ATTRIBUTES
 
-All attributes are counters.
+All attributes are counters and all of them have a respective getter method
+(i.e., C<get_keys>).
 
 =over
 
@@ -76,15 +83,11 @@ Creates a new instance.
 
 sub new {
     my $class = shift;
-    my $self  = {
-        files      => 0,
-        keys       => 0,
-        missing    => 0,
-        unused     => 0,
-        empty      => 0,
-        same       => 0,
-        no_jenkins => 0
-    };
+    my $self  = {};
+
+    foreach my $attrib (@ATTRIBUTES) {
+        $self->{$attrib} = 0;
+    }
 
     bless $self, $class;
     lock_keys( %{$self} );
@@ -155,7 +158,6 @@ sub summary {
 
     }
 
-    warn "Not a single key was processed\n";
     return {};
 }
 
