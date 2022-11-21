@@ -2,6 +2,7 @@ bin/jtt
 Changes
 History.md
 lib/Jenkins/i18n.pm
+lib/Jenkins/i18n/Assertions.pm
 lib/Jenkins/i18n/FindResults.pm
 lib/Jenkins/i18n/License.pm
 lib/Jenkins/i18n/ProcOpts.pm
@@ -13,6 +14,7 @@ Makefile.PL
 MANIFEST
 README.md
 t/find_files.t
+t/find_results.t
 t/Jenkins-i18n.t
 t/license.t
 t/load_jelly.t
