@@ -35,7 +35,7 @@ my $all_langs = find_langs($current_dir);
 my $result    = find_files( $current_dir, $all_langs );
 is( $result->size, 2, 'Got the expected number of files' );
 my $stats     = Jenkins::i18n::Stats->new;
-my $warnings  = Jenkins::i18n::Warnings->new;
+my $warnings  = Jenkins::i18n::Warnings->new(1);
 my $processor = Jenkins::i18n::ProcOpts->new(
     {
         source_dir  => $current_dir,
@@ -142,5 +142,5 @@ while ( my $file = $next_file->() ) {
 }
 
 is( $stats->perc_done, 100, 'Got 100% translated' );
-is( $stats->get_keys, 3,
+is( $stats->get_keys, 4,
     'Have identified the expected number of translation keys' );
