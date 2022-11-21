@@ -284,46 +284,57 @@ The path to the current language file location.
 
 =item 2
 
-The path to the English file location.
+The path to the English Properties file location.
+
+=item 3
+
+The path to the corresponding Jelly file.
 
 =back
+
+All three items are formed based on convention, that doesn't mean that any of
+them actually exists in the file system.
 
 =cut
 
 sub define_files {
-    my ( $self, $file ) = @_;
-    my ( $volume, $dirs, $filename ) = File::Spec->splitpath($file);
+    my ( $self, $file_path ) = @_;
+    my ( $volume, $dirs, $filename ) = File::Spec->splitpath($file_path);
     my @file_parts      = split( $self->{ext_sep}, $filename );
     my $filename_ext    = pop(@file_parts);
     my $filename_prefix = join( '.', @file_parts );
-    my ( $curr_lang_file, $english_file );
+    my ( $curr_lang_file, $english_file, $jelly_file );
 
     if ( $filename_ext eq 'jelly' ) {
         $curr_lang_file
             = $filename_prefix . '_' . $self->{language} . '.properties';
         $english_file = "$filename_prefix.properties";
+        $jelly_file = $filename;
     }
     elsif ( $filename_ext eq 'properties' ) {
         $curr_lang_file
             = $filename_prefix . '_' . $self->{language} . '.properties';
         $english_file = $filename;
+        $jelly_file = "$filename_prefix.jelly";
     }
     else {
-        confess "Unexpected file extension '$filename_ext' in $file";
+        confess "Unexpected file extension '$filename_ext' in $file_path";
     }
 
     my $english_file_path
         = File::Spec->catfile( $volume, $dirs, $english_file );
+    my $jelly_file_path
+        = File::Spec->catfile( $volume, $dirs, $jelly_file );
 
     if ( $self->{source_dir} eq $self->{target_dir} ) {
         return ( File::Spec->catfile( $volume, $dirs, $curr_lang_file ),
-            $english_file_path );
+            $english_file_path, $jelly_file_path );
     }
 
     $dirs =~ s/$self->{source_dir}/$self->{target_dir}/;
 
     return ( File::Spec->catfile( $volume, $dirs, $curr_lang_file ),
-        $english_file_path );
+        $english_file_path, $jelly_file_path );
 
 }
 

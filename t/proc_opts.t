@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More tests => 29;
+use Test::More tests => 33;
 use Test::Exception;
 use Test::Warnings qw(:all);
 use File::Spec;
@@ -63,6 +63,9 @@ is( $instance->get_target,   $target, 'get_target() works as expected' );
 is( $instance->is_to_search, 0,       'is_to_search() works as expected' );
 
 note('Switching target_dir');
+my $jelly_file = 'message.jelly';
+my $jelly_path = File::Spec->catfile($source, $jelly_file);
+
 foreach my $new_target ( ( $source, $target ) ) {
     note("Using $new_target as target directory, source as $source");
     $new_params{target_dir} = $new_target;
@@ -71,16 +74,20 @@ foreach my $new_target ( ( $source, $target ) ) {
     my $file_out
         = File::Spec->catfile( $new_target, 'message_pt_BR.properties' );
     my %expected_files = (
-        $file_in => [ $file_out, $file_in ],
-        File::Spec->catfile( $source, 'message.jelly' ) =>
-            [ $file_out, $file_in ],
+        $file_in => [ $file_out, $file_in, $jelly_path ],
+        $jelly_path => [ $file_out, $file_in, $jelly_path ],
     );
 
+    my $counter = 1;
+
     foreach my $file_path ( keys(%expected_files) ) {
+        note("Test case #$counter: using $file_path to test define_files()");
         my @files = $instance2->define_files($file_path);
+        is(scalar(@files), 3, 'define_files returns 3 files path');
         is_deeply( \@files, $expected_files{$file_path},
 'got the expected results from define_files() with a given file type'
         ) or diag( explain( \@files ) );
+        $counter++;
     }
 }
 
@@ -103,9 +110,10 @@ is_deeply(
         File::Spec->catfile(
             $source, $relative_path, 'Messages_pt_BR.properties'
         ),
-        $input
+        $input,
+        File::Spec->catfile($source, $relative_path, 'Messages.jelly')
     ],
-    'got the expected results from define_files with source = target'
+    'got the expected results from define_files() with source = target'
 ) or diag( explain(@files) );
 
 $target = File::Spec->catdir( File::Spec->rootdir(), 'home', 'barfoo',
@@ -119,7 +127,8 @@ is_deeply(
         File::Spec->catfile(
             $target, $relative_path, 'Messages_pt_BR.properties'
         ),
-        $input
+        $input,
+        File::Spec->catfile($source, $relative_path, 'Messages.jelly')
     ],
     'got the expected results from define_files source != target'
 );

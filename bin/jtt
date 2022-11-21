@@ -197,6 +197,7 @@ sub evaluate_translation {
 
     my $license   = Jenkins::i18n::License->new;
     my $next_file = $find_results->files;
+    my $processed_source = Set::Tiny->new;
 
     # process each file
     while ( my $file = $next_file->() ) {
@@ -219,7 +220,8 @@ sub dump_keys {
 sub process_file {
     my ( $file, $stats, $warnings, $processor, $license ) = @_;
     print "#####\nWorking on $file\n" if ( $processor->is_debug );
-    my ( $curr_lang_file, $english_file ) = $processor->define_files($file);
+    # START
+    my ( $curr_lang_file, $english_file, $other_source ) = $processor->define_files($file);
 
     if ( $processor->is_debug ) {
         print "For file $file:\n",
@@ -260,6 +262,7 @@ sub process_file {
 
     $lang_entries_ref
         = load_properties( $curr_lang_file, $processor->is_debug );
+    # END
 
     if ( $processor->is_debug ) {
         print "All keys retrieved from $curr_lang_file:\n";
