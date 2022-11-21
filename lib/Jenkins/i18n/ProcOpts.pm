@@ -299,6 +299,7 @@ them actually exists in the file system.
 
 sub define_files {
     my ( $self, $file_path ) = @_;
+    confess 'Must receive a file path as parameter' unless ($file_path);
     my ( $volume, $dirs, $filename ) = File::Spec->splitpath($file_path);
     my @file_parts      = split( $self->{ext_sep}, $filename );
     my $filename_ext    = pop(@file_parts);
@@ -309,13 +310,13 @@ sub define_files {
         $curr_lang_file
             = $filename_prefix . '_' . $self->{language} . '.properties';
         $english_file = "$filename_prefix.properties";
-        $jelly_file = $filename;
+        $jelly_file   = $filename;
     }
     elsif ( $filename_ext eq 'properties' ) {
         $curr_lang_file
             = $filename_prefix . '_' . $self->{language} . '.properties';
         $english_file = $filename;
-        $jelly_file = "$filename_prefix.jelly";
+        $jelly_file   = "$filename_prefix.jelly";
     }
     else {
         confess "Unexpected file extension '$filename_ext' in $file_path";
@@ -323,8 +324,7 @@ sub define_files {
 
     my $english_file_path
         = File::Spec->catfile( $volume, $dirs, $english_file );
-    my $jelly_file_path
-        = File::Spec->catfile( $volume, $dirs, $jelly_file );
+    my $jelly_file_path = File::Spec->catfile( $volume, $dirs, $jelly_file );
 
     if ( $self->{source_dir} eq $self->{target_dir} ) {
         return ( File::Spec->catfile( $volume, $dirs, $curr_lang_file ),
