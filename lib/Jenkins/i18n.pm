@@ -10,6 +10,7 @@ use Set::Tiny;
 
 use Jenkins::i18n::Properties;
 use Jenkins::i18n::FindResults;
+use Jenkins::i18n::Assertions qw(is_jelly_file);
 
 =pod
 
@@ -32,18 +33,94 @@ This module implements some of the functions used by the CLI.
 use Exporter 'import';
 our @EXPORT_OK = (
     'remove_unused', 'find_files', 'load_properties', 'load_jelly',
-    'find_langs'
+    'find_langs',    'all_data',   'dump_keys'
 );
 
 our $VERSION = '0.09';
 
-=head2 EXPORT
+=head1 EXPORT
 
 None by default.
 
-=head2 FUNCTIONS
+=head1 FUNCTIONS
 
-=head3 remove_unused
+=head2 dump_keys
+
+Prints to C<STDOUT> all keys from a hash, using some formatting to make it
+easier to read.
+
+Expects as parameter a hash reference.
+
+=cut
+
+sub dump_keys {
+    my $entries_ref = shift;
+    foreach my $key ( keys( %{$entries_ref} ) ) {
+        print "\t$key\n";
+    }
+}
+
+=head2 all_data
+
+Retrieves all translation data from
+
+=cut
+
+sub all_data {
+    my ( $file, $processor ) = @_;
+    print "#####\nWorking on $file\n" if ( $processor->is_debug );
+    my ( $curr_lang_file, $english_file, $other_source )
+        = $processor->define_files($file);
+
+    if ( $processor->is_debug ) {
+        print "For file $file:\n",
+            "\tthe localization file is $curr_lang_file\n",
+            "\tand the source is $english_file\n";
+    }
+
+   # entries_ref -> keys used in jelly or Message.properties files
+   # lang_entries_ref -> keys/values in the desired language which are already
+   # present in the file
+    my ( $entries_ref, $lang_entries_ref, $english_entries_ref );
+
+    # Read .jelly or Message.properties files, and fill a hash with the keys
+    # found
+    if ( is_jelly_file($file) ) {
+        $entries_ref = load_jelly($file);
+        $english_entries_ref
+            = load_properties( $english_file, $processor->is_debug );
+
+        if ( $processor->is_debug ) {
+            print "All keys retrieved from $file:\n";
+            dump_keys($entries_ref);
+            print "All keys retrieved from $english_file:\n";
+            dump_keys($english_entries_ref);
+        }
+    }
+    else {
+        $english_entries_ref = load_properties( $file, $processor->is_debug );
+
+        if ( $processor->is_debug ) {
+            print "All keys retrieved from $file:\n";
+            dump_keys($english_entries_ref);
+        }
+
+        # TODO: only the keys are required, not the values
+        $entries_ref = $english_entries_ref;
+    }
+
+    $lang_entries_ref
+        = load_properties( $curr_lang_file, $processor->is_debug );
+
+    if ( $processor->is_debug ) {
+        print "All keys retrieved from $curr_lang_file:\n";
+        dump_keys($lang_entries_ref);
+    }
+
+    return ( $entries_ref, $lang_entries_ref, $english_entries_ref );
+}
+
+=head1 remove_unused
 
 Remove unused keys from a properties file.
 
