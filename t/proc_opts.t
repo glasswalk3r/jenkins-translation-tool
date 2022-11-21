@@ -64,7 +64,7 @@ is( $instance->is_to_search, 0,       'is_to_search() works as expected' );
 
 note('Switching target_dir');
 my $jelly_file = 'message.jelly';
-my $jelly_path = File::Spec->catfile($source, $jelly_file);
+my $jelly_path = File::Spec->catfile( $source, $jelly_file );
 
 foreach my $new_target ( ( $source, $target ) ) {
     note("Using $new_target as target directory, source as $source");
@@ -74,7 +74,7 @@ foreach my $new_target ( ( $source, $target ) ) {
     my $file_out
         = File::Spec->catfile( $new_target, 'message_pt_BR.properties' );
     my %expected_files = (
-        $file_in => [ $file_out, $file_in, $jelly_path ],
+        $file_in    => [ $file_out, $file_in, $jelly_path ],
         $jelly_path => [ $file_out, $file_in, $jelly_path ],
     );
 
@@ -83,7 +83,7 @@ foreach my $new_target ( ( $source, $target ) ) {
     foreach my $file_path ( keys(%expected_files) ) {
         note("Test case #$counter: using $file_path to test define_files()");
         my @files = $instance2->define_files($file_path);
-        is(scalar(@files), 3, 'define_files returns 3 files path');
+        is( scalar(@files), 3, 'define_files returns 3 files path' );
         is_deeply( \@files, $expected_files{$file_path},
 'got the expected results from define_files() with a given file type'
         ) or diag( explain( \@files ) );
@@ -111,7 +111,7 @@ is_deeply(
             $source, $relative_path, 'Messages_pt_BR.properties'
         ),
         $input,
-        File::Spec->catfile($source, $relative_path, 'Messages.jelly')
+        File::Spec->catfile( $source, $relative_path, 'Messages.jelly' )
     ],
     'got the expected results from define_files() with source = target'
 ) or diag( explain(@files) );
@@ -128,7 +128,7 @@ is_deeply(
             $target, $relative_path, 'Messages_pt_BR.properties'
         ),
         $input,
-        File::Spec->catfile($source, $relative_path, 'Messages.jelly')
+        File::Spec->catfile( $source, $relative_path, 'Messages.jelly' )
     ],
     'got the expected results from define_files source != target'
 );
