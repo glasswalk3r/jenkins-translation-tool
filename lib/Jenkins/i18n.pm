@@ -62,7 +62,33 @@ sub dump_keys {
 
 =head2 all_data
 
-Retrieves all translation data from
+Retrieves all translation data from a single given file as reference.
+
+Expects as parameter a complete path to a file.
+
+This file can be a Properties or Jelly file. From that file name, it will be
+defined the related other files, by convention.
+
+Returns a array reference, where each index is:
+
+=over
+
+=item 1
+
+A hash reference with all keys/values for the English language.
+
+=item 2
+
+A hash reference with all the keys/values for the related language.
+
+=item 3
+
+A hash reference for the keys retrieved from the respective Jelly file.
+
+=back
+
+Any of the return references may point to an empty hash, but at list the first
+reference must point to a non-empty hash.
 
 =cut
 
