@@ -66,17 +66,14 @@ sub add_warning {
 }
 
 sub _generic_iterator {
-    my ( $self, $attribute ) = @_;
-
-    my $current_index = 0;
-    my $last_index    = scalar( $self->{$attribute} ) - 1;
-    my $elements_ref  = $self->{$attribute};
+    my ( $self, $items_ref ) = @_;
+    my $current_index = -1;
+    my $last_index    = scalar( @{$items_ref} ) - 1;
 
     return sub {
-        return if ( $current_index >= $last_index );
-        my $file = $elements_ref->[$current_index];
-        $current_index++ if ( $current_index < $last_index );
-        return $file;
+        return if ( $current_index == $last_index );
+        $current_index++;
+        return $items_ref->[$current_index];
     }
 }
 
@@ -87,7 +84,7 @@ Returns an iterator for the files set, as a C<sub> reference.
 The iterator will return C<undef> when there are no more elements so you can
 use it inside an C<while> loop.
 
-The iterator only moves foward.
+The iterator only moves foward and the items will be alphabetically sorted.
 
 Adding new files to the set after an iterator is created won't update it
 automatically, one will need to create a new one with this method.
@@ -97,8 +94,9 @@ Expects no parameter.
 =cut
 
 sub files {
-    my $self = shift;
-    return $self->_generic_iterator('files');
+    my $self   = shift;
+    my @sorted = sort( @{ $self->{files} } );
+    return $self->_generic_iterator( \@sorted );
 }
 
 =head2 warnings
@@ -108,7 +106,8 @@ Returns an iterator for the warnings set, as a C<sub> reference.
 The iterator will return C<undef> when there are no more elements so you can
 use it inside an C<while> loop.
 
-The iterator only moves foward.
+The iterator only moves foward, the order of items will be in the sequence of
+registry of each warning.
 
 Adding new files to the set after an iterator is created won't update it
 automatically, one will need to create a new one with this method.
@@ -119,7 +118,7 @@ Expects no parameter.
 
 sub warnings {
     my $self = shift;
-    return $self->_generic_iterator('warnings');
+    return $self->_generic_iterator( $self->{warnings} );
 }
 
 =head2 size
