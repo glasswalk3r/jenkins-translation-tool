@@ -131,8 +131,8 @@ sub all_data {
             dump_keys($english_entries_ref);
         }
 
-        # TODO: only the keys are required, not the values
-        $entries_ref = $english_entries_ref;
+        my %only_keys = map { $_ => 1 } keys( %{$english_entries_ref} );
+        $entries_ref = \%only_keys;
     }
 
     $lang_entries_ref
