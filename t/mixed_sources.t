@@ -2,11 +2,12 @@ use strict;
 use warnings;
 use Test::More tests => 3;
 
-use Jenkins::i18n ( 'find_files', 'load_properties', 'load_jelly',
-    'find_langs' );
+use Jenkins::i18n
+    qw(find_files load_properties load_jelly find_langs all_data );
 use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
 use Jenkins::i18n::ProcOpts;
+use Jenkins::i18n::Assertions qw(has_empty can_ignore has_hudson);
 
 my $path = 't/samples/mixed';
 
@@ -16,20 +17,6 @@ chdir($path) or die "Cannot cd to $path: $!";
 my $current_dir = getcwd;
 
 # TODO: copied from the CLI, must be refactored to import functions instead
-my $empty_regex  = qr/empty/i;
-my $jelly_regex  = qr/.jelly$/;
-my $hudson_regex = qr/Hudson/;
-my $ignore_same  = Set::Tiny->new(
-    (
-        'https://www.jenkins.io/redirect/log-levels',
-        'Maven',
-        'Jenkins',
-        'JDK',
-        'Javadoc',
-        'https://www.jenkins.io/redirect/fingerprint',
-        'https://www.jenkins.io/redirect/search-box'
-    )
-);
 
 my $all_langs = find_langs($current_dir);
 my $result    = find_files( $current_dir, $all_langs );
@@ -54,19 +41,8 @@ my $next_file = $result->files;
 while ( my $file = $next_file->() ) {
     $stats->inc('files');
     my ( $curr_lang_file, $english_file ) = $processor->define_files($file);
-    my ( $entries_ref, $lang_entries_ref, $english_entries_ref );
-    if ( $file =~ $jelly_regex ) {
-        $entries_ref = load_jelly($file);
-        $english_entries_ref
-            = load_properties( $english_file, $processor->is_debug );
-    }
-    else {
-        $english_entries_ref = load_properties( $file, $processor->is_debug );
-        $entries_ref         = $english_entries_ref;
-    }
-
-    $lang_entries_ref
-        = load_properties( $curr_lang_file, $processor->is_debug );
+    my ( $entries_ref, $lang_entries_ref, $english_entries_ref )
+        = all_data( $file, $processor );
 
     foreach my $entry ( keys %{$entries_ref} ) {
         $stats->inc('keys');
@@ -81,7 +57,7 @@ while ( my $file = $next_file->() ) {
         }
 
         if ( $lang_entries_ref->{$entry} eq '' ) {
-            unless ( $entry =~ $empty_regex ) {
+            unless ( has_empty($entry) ) {
                 $stats->inc('empty');
                 $warnings->add( 'empty', $entry );
             }
@@ -103,7 +79,7 @@ while ( my $file = $next_file->() ) {
             && $english_entries_ref->{$entry}
             && $lang_entries_ref->{$entry} eq $english_entries_ref->{$entry} )
         {
-            unless ( $ignore_same->has( $lang_entries_ref->{$entry} ) ) {
+            unless ( can_ignore( $lang_entries_ref->{$entry} ) ) {
                 $stats->inc('same');
                 $warnings->add( 'same', $entry );
             }
@@ -114,8 +90,8 @@ while ( my $file = $next_file->() ) {
     }
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
-        if (   $lang_entries_ref->{$entry}
-            && $lang_entries_ref->{$entry} =~ $hudson_regex )
+        if ( $lang_entries_ref->{$entry}
+            && has_hudson( $lang_entries_ref->{$entry} ) )
         {
             $warnings->add( 'non_jenkins',
                 ( "$entry -> " . $lang_entries_ref->{$entry} ) );
