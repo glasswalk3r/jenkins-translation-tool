@@ -199,28 +199,10 @@ sub process_file {
     my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref )
         = all_data( $file, $processor );
 
-    foreach my $entry ( keys %{$jelly_entries_ref} ) {
-        $stats->inc('keys');
-
-        # TODO: skip increasing missing if operation is to delete those
-        unless (( exists( $lang_entries_ref->{$entry} ) )
-            and ( defined( $lang_entries_ref->{$entry} ) ) )
-        {
-            $stats->inc('missing');
-            $warnings->add( 'missing', $entry );
-            next;
-        }
-
-        if ( $lang_entries_ref->{$entry} eq '' ) {
-            unless ( has_empty($entry) ) {
-                $stats->inc('empty');
-                $warnings->add( 'empty', $entry );
-            }
-            else {
-                $warnings->add( 'ignored', $entry );
-            }
-        }
-    }
+    # TODO: invoke merge_data() from all_data(), since only merged keys
+    # will be in use?
+    my $merged_ref = merge_data( $jelly_entries_ref, $english_entries_ref );
+    find_missing( $merged_ref, $lang_entries_ref, $stats, $warnings );
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         unless ( defined $jelly_entries_ref->{$entry} ) {
@@ -268,6 +250,8 @@ sub process_file {
 
     }
 
+    # TODO: avoid calling define_files() twice, create an attribute
+    # to store such state
     my $curr_lang_file = ( $processor->define_files($file) )[0];
     $warnings->summary($curr_lang_file);
 

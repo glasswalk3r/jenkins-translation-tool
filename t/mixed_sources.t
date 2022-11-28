@@ -3,7 +3,7 @@ use warnings;
 use Test::More tests => 3;
 
 use Jenkins::i18n
-    qw(find_files load_properties load_jelly find_langs all_data );
+    qw(find_files load_properties load_jelly find_langs all_data merge_data find_missing );
 use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
 use Jenkins::i18n::ProcOpts;
@@ -32,7 +32,7 @@ my $processor = Jenkins::i18n::ProcOpts->new(
         use_counter => 0,
         is_remove   => 0,
         is_add      => 0,
-        is_debug    => 0,
+        is_debug    => 1,
         lang        => 'pt_BR',
         search      => 'foobar'
     }
@@ -46,34 +46,19 @@ while ( my $file = $next_file->() ) {
     # we need only the current language file to compare the translations
     # that's why we are double calling define_files()
     my $curr_lang_file = ( $processor->define_files($file) )[0];
-    my ( $entries_ref, $lang_entries_ref, $english_entries_ref )
+    my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref )
         = all_data( $file, $processor );
 
-    foreach my $entry ( keys %{$entries_ref} ) {
-        $stats->inc('keys');
+    note(explain($jelly_entries_ref));
+    note(explain($english_entries_ref));
 
-        # TODO: skip increasing missing if operation is to delete those
-        unless (( exists( $lang_entries_ref->{$entry} ) )
-            and ( defined( $lang_entries_ref->{$entry} ) ) )
-        {
-            $stats->inc('missing');
-            $warnings->add( 'missing', $entry );
-            next;
-        }
-
-        if ( $lang_entries_ref->{$entry} eq '' ) {
-            unless ( has_empty($entry) ) {
-                $stats->inc('empty');
-                $warnings->add( 'empty', $entry );
-            }
-            else {
-                $warnings->add( 'ignored', $entry );
-            }
-        }
-    }
+    # TODO: invoke merge_data() from all_data(), since only merged keys
+    # will be in use?
+    my $merged_ref = merge_data( $jelly_entries_ref, $english_entries_ref );
+    find_missing( $merged_ref, $lang_entries_ref, $stats, $warnings );
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
-        unless ( defined $entries_ref->{$entry} ) {
+        unless ( defined $jelly_entries_ref->{$entry} ) {
             $stats->inc('unused');
             $warnings->add( 'unused', $entry );
         }

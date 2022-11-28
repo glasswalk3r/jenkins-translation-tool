@@ -33,7 +33,8 @@ This module implements some of the functions used by the CLI.
 use Exporter 'import';
 our @EXPORT_OK = (
     'remove_unused', 'find_files', 'load_properties', 'load_jelly',
-    'find_langs',    'all_data',   'dump_keys'
+    'find_langs',    'all_data',   'dump_keys',       'merge_data',
+    'find_missing'
 );
 
 our $VERSION = '0.09';
@@ -43,6 +44,68 @@ our $VERSION = '0.09';
 None by default.
 
 =head1 FUNCTIONS
+
+=head2 find_missing
+
+=cut
+
+sub find_missing {
+    my ( $source_ref, $i18n_ref, $stats, $warnings ) = @_;
+    foreach my $entry ( keys %{$source_ref} ) {
+        $stats->inc('keys');
+
+        # TODO: skip increasing missing if operation is to delete those
+        unless (( exists( $i18n_ref->{$entry} ) )
+            and ( defined( $i18n_ref->{$entry} ) ) )
+        {
+            $stats->inc('missing');
+            $warnings->add( 'missing', $entry );
+            next;
+        }
+
+        if ( $i18n_ref->{$entry} eq '' ) {
+            unless ( has_empty($entry) ) {
+                $stats->inc('empty');
+                $warnings->add( 'empty', $entry );
+            }
+            else {
+                $warnings->add( 'ignored', $entry );
+            }
+        }
+    }
+}
+
+=head2 merge_data
+
+=cut
+
+sub merge_data {
+    my ( $jelly_ref, $properties_ref ) = @_;
+    confess('A hash reference of the Jelly keys is required')
+        unless ($jelly_ref);
+    confess('The Jelly type is invalid') unless ( ref($jelly_ref) eq 'HASH' );
+    confess('A hash reference of the Properties keys is required')
+        unless ($properties_ref);
+    confess('The Properties type is invalid')
+        unless ( ref($properties_ref) eq 'HASH' );
+    my %merged;
+
+    if ( scalar( keys( %${jelly_ref} ) ) == 0 ) {
+        confess 'The Jelly or the Properties must have at least a single key'
+            if ( scalar( keys( %{$properties_ref} ) ) == 0 );
+        return $properties_ref;
+    }
+
+    foreach my $prop_key ( keys( %{$jelly_ref} ) ) {
+        if ( exists( $properties_ref->{$prop_key} ) ) {
+            $merged{$prop_key} = $properties_ref->{$prop_key};
+        }
+        else {
+            $merged{$prop_key} = $prop_key;
+        }
+    }
+    return \%merged;
+}
 
 =head2 dump_keys
 
