@@ -196,10 +196,10 @@ sub evaluate_translation {
 # This is the main method with is run for each file
 sub process_file {
     my ( $file, $stats, $warnings, $processor, $license ) = @_;
-    my ( $entries_ref, $lang_entries_ref, $english_entries_ref )
+    my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref )
         = all_data( $file, $processor );
 
-    foreach my $entry ( keys %{$entries_ref} ) {
+    foreach my $entry ( keys %{$jelly_entries_ref} ) {
         $stats->inc('keys');
 
         # TODO: skip increasing missing if operation is to delete those
@@ -223,7 +223,7 @@ sub process_file {
     }
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
-        unless ( defined $entries_ref->{$entry} ) {
+        unless ( defined $jelly_entries_ref->{$entry} ) {
             $stats->inc('unused');
             $warnings->add( 'unused', $entry );
         }
@@ -278,7 +278,7 @@ sub process_file {
         open( my $out, '>>', $curr_lang_file )
             or die "Cannot write to $curr_lang_file: $!\n";
 
-        foreach my $entry ( keys %{$entries_ref} ) {
+        foreach my $entry ( keys %{$jelly_entries_ref} ) {
             unless ( exists( $lang_entries_ref->{$entry} ) ) {
 
                 unless ( $lang_entries_ref->{$entry} ) {
@@ -306,7 +306,7 @@ sub process_file {
     if ( $processor->is_remove and $warnings->has_unused ) {
         my $removed
             = remove_unused( $curr_lang_file,
-            Set::Tiny->new( keys( %{$entries_ref} ) ),
+            Set::Tiny->new( keys( %{$jelly_entries_ref} ) ),
             $license->read );
         print "Removed $removed keys\n";
     }
