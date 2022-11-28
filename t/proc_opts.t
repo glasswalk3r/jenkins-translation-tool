@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More tests => 33;
+use Test::More tests => 34;
 use Test::Exception;
 use Test::Warnings qw(:all);
 use File::Spec;
@@ -144,6 +144,15 @@ is( $result,                 0, 'inc returns false' );
 is( $instance->is_to_search, 1, 'is_to_search() works as expected' );
 is( ref( $instance->search_term ),
     'Regexp', 'search_term() returns a regular expression' );
+
+note('Testing files at the current directory');
+$input = 'build.jelly';
+@files = $instance->define_files($input);
+is_deeply(
+    \@files,
+    [ 'build_pt_BR.properties', 'build.properties', $input, ],
+    'got the expected results from define_files source != target'
+);
 
 # -*- mode: perl -*-
 # vi: set ft=perl :

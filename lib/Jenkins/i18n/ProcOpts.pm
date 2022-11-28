@@ -322,18 +322,26 @@ sub define_files {
         confess "Unexpected file extension '$filename_ext' in $file_path";
     }
 
-    my $english_file_path
-        = File::Spec->catfile( $volume, $dirs, $english_file );
-    my $jelly_file_path = File::Spec->catfile( $volume, $dirs, $jelly_file );
+    my @dirs;
+    push( @dirs, $volume ) unless ( $volume eq '' );
+    push( @dirs, $dirs )   unless ( $dirs eq '' );
+
+    my $english_file_path = File::Spec->catfile( @dirs, $english_file );
+    my $jelly_file_path   = File::Spec->catfile( @dirs, $jelly_file );
 
     if ( $self->{source_dir} eq $self->{target_dir} ) {
-        return ( File::Spec->catfile( $volume, $dirs, $curr_lang_file ),
+        return ( File::Spec->catfile( @dirs, $curr_lang_file ),
             $english_file_path, $jelly_file_path );
     }
 
-    $dirs =~ s/$self->{source_dir}/$self->{target_dir}/;
+    if ( $dirs ne '' ) {
+        $dirs =~ s/$self->{source_dir}/$self->{target_dir}/;
+        @dirs = ();
+        push( @dirs, $volume ) unless ( $volume eq '' );
+        push( @dirs, $dirs );
+    }
 
-    return ( File::Spec->catfile( $volume, $dirs, $curr_lang_file ),
+    return ( File::Spec->catfile( @dirs, $curr_lang_file ),
         $english_file_path, $jelly_file_path );
 
 }
