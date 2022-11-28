@@ -11,7 +11,8 @@ use Jenkins::i18n::Assertions qw(has_empty can_ignore has_hudson);
 
 my $path = 't/samples/mixed';
 
-# TODO: this must be a temporary workaround
+# TODO: this must be a temporary workaround, we should be able to point
+# to a different directory
 use Cwd;
 chdir($path) or die "Cannot cd to $path: $!";
 my $current_dir = getcwd;
@@ -20,6 +21,7 @@ my $current_dir = getcwd;
 
 my $all_langs = find_langs($current_dir);
 my $result    = find_files( $current_dir, $all_langs );
+note( explain($result) );
 is( $result->size, 2, 'Got the expected number of files' );
 my $stats     = Jenkins::i18n::Stats->new;
 my $warnings  = Jenkins::i18n::Warnings->new(1);
@@ -40,7 +42,10 @@ my $next_file = $result->files;
 
 while ( my $file = $next_file->() ) {
     $stats->inc('files');
-    my ( $curr_lang_file, $english_file ) = $processor->define_files($file);
+
+    # we need only the current language file to compare the translations
+    # that's why we are double calling define_files()
+    my $curr_lang_file = ( $processor->define_files($file) )[0];
     my ( $entries_ref, $lang_entries_ref, $english_entries_ref )
         = all_data( $file, $processor );
 

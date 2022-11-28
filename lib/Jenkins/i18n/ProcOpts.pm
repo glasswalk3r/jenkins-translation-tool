@@ -7,6 +7,8 @@ use Hash::Util qw(lock_hash unlock_value lock_value);
 use Carp       qw(confess);
 use File::Spec;
 
+# TODO: use Class::Accessor for getters
+
 our $VERSION = '0.09';
 
 =pod
