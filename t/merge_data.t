@@ -19,82 +19,79 @@ like( $@, qr/Properties\skeys\sis\srequired/, $expected_error );
 dies_ok { merge_data( {}, 2 ) } 'Dies with invalid Jelly keys parameter';
 like( $@, qr/Properties\stype/, $expected_error );
 
-dies_ok { merge_data( {}, {} ) }
-'Dies with both Jelly and Properties referencing empty hashes';
-like( $@, qr/at\sleast\sa\ssingle\skey/, $expected_error );
-
 my @fixtures = (
-    [
-        'Best scenario',
-        { user => 1, shutdown => 1, warn => 1 },
-        {
+    {
+        test_case  => 'Best scenario',
+        jelly      => { user => 1, shutdown => 1, warn => 1 },
+        properties => {
             user     => 'Hello user!',
-            shutdown => 'The system is goind down!',
+            shutdown => 'The system is going down!',
             warn     => 'A serious warning'
         },
-        {
+        expected => {
             user     => 'Hello user!',
-            shutdown => 'The system is goind down!',
+            shutdown => 'The system is going down!',
             warn     => 'A serious warning'
         },
-    ],
-    [
-        'No Jelly',
-        {},
-        {
+    },
+    {
+        test_case  => 'No Jelly',
+        jelly      => {},
+        properties => {
             user     => 'Hello user!',
-            shutdown => 'The system is goind down!',
+            shutdown => 'The system is going down!',
             warn     => 'A serious warning'
         },
-        {
+        expected => {
             user     => 'Hello user!',
-            shutdown => 'The system is goind down!',
+            shutdown => 'The system is going down!',
             warn     => 'A serious warning'
         },
-    ],
-    [
-        'Partial translation',
-        {
+    },
+    {
+        test_case => 'Partial translation',
+        jelly     => {
             user                  => 1,
             'A\ serious\ warning' => 1,
             shutdown              => 1
         },
-        {
+        properties => {
             user     => 'Hello user!',
             shutdown => 'The system is going down!'
         },
-        {
+        expected => {
             user                  => 'Hello user!',
             shutdown              => 'The system is going down!',
             'A\ serious\ warning' => 'A\ serious\ warning',
         },
-    ],
-    [
-        'Only Jelly',
-        {
+    },
+    {
+        test_case => 'Only Jelly',
+        jelly     => {
             'Hello\ User'                  => 1,
             'A\ serious\ warning'          => 1,
             'The\ system\ is\ going\ down' => 1
         },
-        {},
-        {
+        properties => {},
+        expected   => {
             'Hello\ User'                  => 'Hello\ User',
             'A\ serious\ warning'          => 'A\ serious\ warning',
             'The\ system\ is\ going\ down' => 'The\ system\ is\ going\ down'
         },
-    ]
+    }
 );
 
 foreach my $test_case (@fixtures) {
-    note( $test_case->[0] );
-    my $current_ref = merge_data( $test_case->[1], $test_case->[2] );
+    note( $test_case->{test_case} );
+    my $current_ref
+        = merge_data( $test_case->{jelly}, $test_case->{properties} );
     is( ref($current_ref), 'HASH', 'merge result is a hash reference' );
     is_deeply(
         $current_ref,
-        $test_case->[3],
+        $test_case->{expected},
         (
                   'Have the expected Properties for "'
-                . $test_case->[0]
+                . $test_case->{test_case}
                 . '" test case'
         )
     ) or diag( explain($current_ref) );

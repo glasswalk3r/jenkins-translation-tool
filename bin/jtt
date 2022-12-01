@@ -20,13 +20,14 @@ use feature 'say';
 
 use Jenkins::i18n (
     'remove_unused', 'find_files', 'load_properties', 'load_jelly',
-    'find_langs',    'all_data',   'dump_keys'
+    'find_langs',    'all_data',   'dump_keys',       'merge_data',
+    'find_missing'
 );
 use Jenkins::i18n::Stats;
 use Jenkins::i18n::Warnings;
 use Jenkins::i18n::ProcOpts;
 use Jenkins::i18n::License;
-use Jenkins::i18n::Assertions qw(has_empty can_ignore has_hudson);
+use Jenkins::i18n::Assertions qw(can_ignore has_hudson);
 
 our $VERSION = '0.09';
 my $current_dir = getcwd;
@@ -185,7 +186,7 @@ sub evaluate_translation {
 
     # process each file
     while ( my $file = $next_file->() ) {
-        $stats->inc('files');
+        $stats->inc_files;
         process_file( $file, $stats, $warnings, $processor, $license );
         $warnings->reset;
     }
@@ -206,7 +207,7 @@ sub process_file {
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         unless ( defined $jelly_entries_ref->{$entry} ) {
-            $stats->inc('unused');
+            $stats->inc_unused;
             $warnings->add( 'unused', $entry );
         }
     }
@@ -217,7 +218,7 @@ sub process_file {
             && $lang_entries_ref->{$entry} eq $english_entries_ref->{$entry} )
         {
             unless ( can_ignore( $lang_entries_ref->{$entry} ) ) {
-                $stats->inc('same');
+                $stats->inc_same;
                 $warnings->add( 'same', $entry );
             }
             else {
@@ -232,7 +233,7 @@ sub process_file {
         {
             $warnings->add( 'non_jenkins',
                 ( "$entry -> " . $lang_entries_ref->{$entry} ) );
-            $stats->inc('no_jenkins');
+            $stats->inc_no_jenkins;
         }
     }
 

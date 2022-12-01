@@ -10,7 +10,7 @@ use Set::Tiny;
 
 use Jenkins::i18n::Properties;
 use Jenkins::i18n::FindResults;
-use Jenkins::i18n::Assertions qw(is_jelly_file);
+use Jenkins::i18n::Assertions qw(is_jelly_file has_empty);
 
 =pod
 
@@ -58,7 +58,7 @@ sub find_missing {
         unless (( exists( $i18n_ref->{$entry} ) )
             and ( defined( $i18n_ref->{$entry} ) ) )
         {
-            $stats->inc('missing');
+            $stats->inc_missing;
             $warnings->add( 'missing', $entry );
             next;
         }
@@ -90,9 +90,7 @@ sub merge_data {
         unless ( ref($properties_ref) eq 'HASH' );
     my %merged;
 
-    if ( scalar( keys( %${jelly_ref} ) ) == 0 ) {
-        confess 'The Jelly or the Properties must have at least a single key'
-            if ( scalar( keys( %{$properties_ref} ) ) == 0 );
+    if ( scalar( keys( %{$jelly_ref} ) ) == 0 ) {
         return $properties_ref;
     }
 
@@ -171,7 +169,14 @@ sub all_data {
    # lang_entries_ref -> keys/values in the desired language which are already
    # present in the file
     my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref );
-    $jelly_entries_ref = load_jelly($jelly_file);
+
+    if ( -f $jelly_file ) {
+        $jelly_entries_ref = load_jelly($jelly_file);
+    }
+    else {
+        $jelly_entries_ref = {};
+    }
+
     $english_entries_ref
         = load_properties( $english_file, $processor->is_debug );
     $lang_entries_ref
