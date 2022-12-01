@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More;    # tests => 12;
+use Test::More tests => 14;
 use Test::Exception;
 
 use Jenkins::i18n::Stats;
@@ -29,14 +29,12 @@ ok( $instance->add_key('foobar'), 'can increment the "keys" counter' );
 ok( $instance->add_key('foobar'), 'can increment the "keys" counter' );
 ok( $instance->add_key('barfoo'), 'can increment the "keys" counter' );
 is( $instance->get_keys, 2, '"keys" counter has the expected value' );
-dies_ok { $instance->_inc('foobar') } 'inc() dies with invalid counter name';
+dies_ok { $instance->_inc('foobar') } '_inc() dies with invalid counter name';
 like( $@, qr/foobar/, 'got the expected error message' );
 dies_ok { $instance->_inc } 'inc() dies with missing counter name';
 like( $@, qr/required/, 'got the expected error message' );
 is( $instance->perc_done, 100,
     'perc_done() returns all done since there are no problems' );
-
-done_testing;
 
 sub sum_counters {
     my $instance = shift;
