@@ -8,7 +8,7 @@ use Carp       qw(confess);
 use Set::Tiny;
 use base 'Class::Accessor';
 
-my @ATTRIBUTES = qw(files missing unused empty same no_jenkins);
+my @ATTRIBUTES = qw(files missing unused empty same no_jenkins keys);
 
 __PACKAGE__->follow_best_practice;
 __PACKAGE__->mk_ro_accessors(@ATTRIBUTES);
@@ -50,12 +50,17 @@ sub new {
         $self->{$attrib} = 0;
     }
 
-    $self->{keys} = Set::Tiny->new;
+    $self->{unique_keys} = Set::Tiny->new;
 
     bless $self, $class;
     lock_keys( %{$self} );
     return $self;
 }
+
+=head2 get_keys
+
+Return the number of all keys retrieve from all files processed, ignoring if
+they are repeated several times.
 
 =head2 get_files
 
@@ -159,25 +164,27 @@ sub inc_no_jenkins {
 
 =head2 add_key
 
-Adds a key to a set of processed keys.
+Increments the keys counters.
 
-This is required in order to allow the counting of unique keys processed.
+This is required in order to allow the counting of unique keys processed, as
+well all the keys processed.
 
 =cut
 
 sub add_key {
     my ( $self, $key ) = @_;
-    $self->{keys}->insert($key);
+    $self->_inc('keys');
+    $self->{unique_keys}->insert($key);
 }
 
-=head2 get_keys
+=head2 get_unique_keys
 
 Returns the number of unique keys processed.
 
 =cut
 
-sub get_keys {
-    return shift->{keys}->size();
+sub get_unique_keys {
+    return shift->{unique_keys}->size();
 }
 
 sub _done {

@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 15;
 use Test::Exception;
 
 use Jenkins::i18n::Stats;
@@ -11,7 +11,7 @@ ok( $instance = Jenkins::i18n::Stats->new, 'can create a new instance' );
 isa_ok( $instance, $package_name );
 
 my @expected_attribs
-    = sort(qw(keys missing unused empty same no_jenkins files));
+    = sort(qw(keys missing unused empty same no_jenkins files unique_keys));
 my @instance_attribs = sort( keys( %{$instance} ) );
 is_deeply( \@instance_attribs, \@expected_attribs,
     'got all expected attributes from instance' );
@@ -28,7 +28,8 @@ is( sum_counters(), 0, 'all counters have zero as value' );
 ok( $instance->add_key('foobar'), 'can increment the "keys" counter' );
 ok( $instance->add_key('foobar'), 'can increment the "keys" counter' );
 ok( $instance->add_key('barfoo'), 'can increment the "keys" counter' );
-is( $instance->get_keys, 2, '"keys" counter has the expected value' );
+is( $instance->get_keys, 3, '"keys" counter has the expected value' );
+is( $instance->get_unique_keys, 2, '"unique keys" counter has the expected value' );
 dies_ok { $instance->_inc('foobar') } '_inc() dies with invalid counter name';
 like( $@, qr/foobar/, 'got the expected error message' );
 dies_ok { $instance->_inc } 'inc() dies with missing counter name';
