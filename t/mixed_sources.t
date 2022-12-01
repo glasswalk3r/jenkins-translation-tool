@@ -49,8 +49,8 @@ while ( my $file = $next_file->() ) {
     my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref )
         = all_data( $file, $processor );
 
-    note(explain($jelly_entries_ref));
-    note(explain($english_entries_ref));
+    note( explain($jelly_entries_ref) );
+    note( explain($english_entries_ref) );
 
     # TODO: invoke merge_data() from all_data(), since only merged keys
     # will be in use?

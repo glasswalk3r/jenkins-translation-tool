@@ -158,7 +158,7 @@ reference must point to a non-empty hash.
 sub all_data {
     my ( $file, $processor ) = @_;
     print "#####\nWorking on $file\n" if ( $processor->is_debug );
-    my ( $curr_lang_file, $english_file, $other_source )
+    my ( $curr_lang_file, $english_file, $jelly_file )
         = $processor->define_files($file);
 
     if ( $processor->is_debug ) {
@@ -170,18 +170,18 @@ sub all_data {
    # entries_ref -> keys used in jelly or Message.properties files
    # lang_entries_ref -> keys/values in the desired language which are already
    # present in the file
-    my ( $entries_ref, $lang_entries_ref, $english_entries_ref );
+    my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref );
 
     # Read .jelly or Message.properties files, and fill a hash with the keys
     # found
     if ( is_jelly_file($file) ) {
-        $entries_ref = load_jelly($file);
+        $jelly_entries_ref = load_jelly($file);
         $english_entries_ref
             = load_properties( $english_file, $processor->is_debug );
 
         if ( $processor->is_debug ) {
             print "All keys retrieved from $file:\n";
-            dump_keys($entries_ref);
+            dump_keys($jelly_entries_ref);
             print "All keys retrieved from $english_file:\n";
             dump_keys($english_entries_ref);
         }
@@ -195,7 +195,7 @@ sub all_data {
         }
 
         my %only_keys = map { $_ => 1 } keys( %{$english_entries_ref} );
-        $entries_ref = \%only_keys;
+        $jelly_entries_ref = \%only_keys;
     }
 
     $lang_entries_ref
@@ -206,7 +206,7 @@ sub all_data {
         dump_keys($lang_entries_ref);
     }
 
-    return ( $entries_ref, $lang_entries_ref, $english_entries_ref );
+    return ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref );
 }
 
 =head1 remove_unused
