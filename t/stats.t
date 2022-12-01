@@ -29,7 +29,8 @@ ok( $instance->add_key('foobar'), 'can increment the "keys" counter' );
 ok( $instance->add_key('foobar'), 'can increment the "keys" counter' );
 ok( $instance->add_key('barfoo'), 'can increment the "keys" counter' );
 is( $instance->get_keys, 3, '"keys" counter has the expected value' );
-is( $instance->get_unique_keys, 2, '"unique keys" counter has the expected value' );
+is( $instance->get_unique_keys,
+    2, '"unique keys" counter has the expected value' );
 dies_ok { $instance->_inc('foobar') } '_inc() dies with invalid counter name';
 like( $@, qr/foobar/, 'got the expected error message' );
 dies_ok { $instance->_inc } 'inc() dies with missing counter name';
