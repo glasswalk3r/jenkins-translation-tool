@@ -52,7 +52,7 @@ None by default.
 sub find_missing {
     my ( $source_ref, $i18n_ref, $stats, $warnings ) = @_;
     foreach my $entry ( keys %{$source_ref} ) {
-        $stats->inc('keys');
+        $stats->add_key($entry);
 
         # TODO: skip increasing missing if operation is to delete those
         unless (( exists( $i18n_ref->{$entry} ) )
@@ -171,37 +171,17 @@ sub all_data {
    # lang_entries_ref -> keys/values in the desired language which are already
    # present in the file
     my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref );
-
-    # Read .jelly or Message.properties files, and fill a hash with the keys
-    # found
-    if ( is_jelly_file($file) ) {
-        $jelly_entries_ref = load_jelly($file);
-        $english_entries_ref
-            = load_properties( $english_file, $processor->is_debug );
-
-        if ( $processor->is_debug ) {
-            print "All keys retrieved from $file:\n";
-            dump_keys($jelly_entries_ref);
-            print "All keys retrieved from $english_file:\n";
-            dump_keys($english_entries_ref);
-        }
-    }
-    else {
-        $english_entries_ref = load_properties( $file, $processor->is_debug );
-
-        if ( $processor->is_debug ) {
-            print "All keys retrieved from $file:\n";
-            dump_keys($english_entries_ref);
-        }
-
-        my %only_keys = map { $_ => 1 } keys( %{$english_entries_ref} );
-        $jelly_entries_ref = \%only_keys;
-    }
-
+    $jelly_entries_ref = load_jelly($jelly_file);
+    $english_entries_ref
+        = load_properties( $english_file, $processor->is_debug );
     $lang_entries_ref
         = load_properties( $curr_lang_file, $processor->is_debug );
 
     if ( $processor->is_debug ) {
+        print "All keys retrieved from $jelly_file:\n";
+        dump_keys($jelly_entries_ref);
+        print "All keys retrieved from $english_file:\n";
+        dump_keys($english_entries_ref);
         print "All keys retrieved from $curr_lang_file:\n";
         dump_keys($lang_entries_ref);
     }

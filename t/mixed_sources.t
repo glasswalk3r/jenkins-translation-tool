@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use Jenkins::i18n
     qw(find_files load_properties load_jelly find_langs all_data merge_data find_missing );
@@ -21,7 +21,6 @@ my $current_dir = getcwd;
 
 my $all_langs = find_langs($current_dir);
 my $result    = find_files( $current_dir, $all_langs );
-note( explain($result) );
 is( $result->size, 2, 'Got the expected number of files' );
 my $stats     = Jenkins::i18n::Stats->new;
 my $warnings  = Jenkins::i18n::Warnings->new(1);
@@ -41,16 +40,13 @@ my $processor = Jenkins::i18n::ProcOpts->new(
 my $next_file = $result->files;
 
 while ( my $file = $next_file->() ) {
-    $stats->inc('files');
+    $stats->inc_files;
 
     # we need only the current language file to compare the translations
     # that's why we are double calling define_files()
     my $curr_lang_file = ( $processor->define_files($file) )[0];
     my ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref )
         = all_data( $file, $processor );
-
-    note( explain($jelly_entries_ref) );
-    note( explain($english_entries_ref) );
 
     # TODO: invoke merge_data() from all_data(), since only merged keys
     # will be in use?
@@ -59,7 +55,7 @@ while ( my $file = $next_file->() ) {
 
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         unless ( defined $jelly_entries_ref->{$entry} ) {
-            $stats->inc('unused');
+            $stats->inc_unused;
             $warnings->add( 'unused', $entry );
         }
     }
@@ -70,7 +66,7 @@ while ( my $file = $next_file->() ) {
             && $lang_entries_ref->{$entry} eq $english_entries_ref->{$entry} )
         {
             unless ( can_ignore( $lang_entries_ref->{$entry} ) ) {
-                $stats->inc('same');
+                $stats->inc_same;
                 $warnings->add( 'same', $entry );
             }
             else {
@@ -85,7 +81,7 @@ while ( my $file = $next_file->() ) {
         {
             $warnings->add( 'non_jenkins',
                 ( "$entry -> " . $lang_entries_ref->{$entry} ) );
-            $stats->inc('no_jenkins');
+            $stats->inc_no_jenkins;
         }
     }
 
@@ -108,5 +104,7 @@ while ( my $file = $next_file->() ) {
 }
 
 is( $stats->perc_done, 100, 'Got 100% translated' );
-is( $stats->get_keys, 4,
-    'Have identified the expected number of translation keys' );
+is( $stats->get_unique_keys, 3,
+    'Have identified the expected number of unique translation keys' );
+is( $stats->get_keys, 6,
+    'Have identified the expected number of translation keys processed' );
