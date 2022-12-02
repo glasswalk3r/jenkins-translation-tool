@@ -20,7 +20,7 @@ Jenkins::i18n - functions for the jtt CLI
 
 =head1 SYNOPSIS
 
-  use Jenkins::i18n qw(remove_unused find_files load_properties load_jelly find_langs);
+    use Jenkins::i18n qw(remove_unused find_files load_properties load_jelly find_langs);
 
 =head1 DESCRIPTION
 
@@ -47,10 +47,37 @@ None by default.
 
 =head2 find_missing
 
+Compares the keys available from the source (Jelly and/or Properties files)
+with the i18n file and updates the statistics based on the B<missing keys>,
+i.e., the keys that exists in the source but not in the i18n Properties file.
+
+Expects as parameters the following:
+
+=over
+
+=item 1.
+
+a hash reference with all the keys/values from the Jelly/Properties file.
+
+=item 2.
+
+a hash reference with all the keys/values from the i18n Properties file.
+
+=item 3.
+
+a instance of a L<Jenkins::i18n::Stats> class.
+
+=item 4.
+
+a instance of L<Jenkins::i18n::Warnings> class.
+
+=back
+
 =cut
 
 sub find_missing {
     my ( $source_ref, $i18n_ref, $stats, $warnings ) = @_;
+
     foreach my $entry ( keys %{$source_ref} ) {
         $stats->add_key($entry);
 
@@ -76,6 +103,27 @@ sub find_missing {
 }
 
 =head2 merge_data
+
+Merges the translation data from a Jelly file and a Properties file.
+
+Expects as parameters:
+
+=over
+
+=item 1.
+
+A hash reference with all the keys/values from a Jelly file.
+
+=item 2.
+
+A hash reference with all the keys/values from a Properties file.
+
+=back
+
+This methods considers the way Jenkins is translated nowadays, considering
+different scenarios where the Jelly and Properties have different data.
+
+Returns a hash reference with the keys and values merged.
 
 =cut
 
@@ -134,15 +182,15 @@ Returns a array reference, where each index is:
 
 =over
 
-=item 1
+=item 1.
 
 A hash reference with all keys/values for the English language.
 
-=item 2
+=item 2.
 
 A hash reference with all the keys/values for the related language.
 
-=item 3
+=item 3.
 
 A hash reference for the keys retrieved from the respective Jelly file.
 
@@ -194,7 +242,7 @@ sub all_data {
     return ( $jelly_entries_ref, $lang_entries_ref, $english_entries_ref );
 }
 
-=head1 remove_unused
+=head2 remove_unused
 
 Remove unused keys from a properties file.
 
@@ -209,16 +257,16 @@ Expects as positional parameters:
 
 =over
 
-=item 1
+=item 1.
 
 file: the complete path to the translation file to be checked.
 
-=item 2
+=item 2.
 
 keys: a L<Set::Tiny> instance of the keys from the original English properties
 file.
 
-=item 3
+=item 3.
 
 license: a scalar reference with a license to include the header of the
 translated properties file.
@@ -279,8 +327,20 @@ Find all Jelly and Java Properties files that could be translated from English,
 i.e., files that do not have a ISO 639-1 standard language based code as a
 filename prefix (before the file extension).
 
-Expects as parameter a complete path to a directory that might contain such
-files.
+Expects as parameters:
+
+=over
+
+=item 1.
+
+The complete path to a directory that might contain such files.
+
+=item 2.
+
+An instance of L<Set::Tiny> with all the languages codes identified. See
+C<find_langs>.
+
+=back
 
 Returns an L<Jenkins::i18n::FindResults> instance.
 
