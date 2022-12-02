@@ -205,13 +205,17 @@ sub process_file {
     my $merged_ref = merge_data( $jelly_entries_ref, $english_entries_ref );
     find_missing( $merged_ref, $lang_entries_ref, $stats, $warnings );
 
+    # TODO: create separated function
     foreach my $entry ( keys %{$lang_entries_ref} ) {
-        unless ( defined $jelly_entries_ref->{$entry} ) {
+        unless (( exists( $merged_ref->{$entry} ) )
+            and ( defined $merged_ref->{$entry} ) )
+        {
             $stats->inc_unused;
             $warnings->add( 'unused', $entry );
         }
     }
 
+    # TODO: create separated function
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         if (   $lang_entries_ref->{$entry}
             && $english_entries_ref->{$entry}
@@ -227,6 +231,7 @@ sub process_file {
         }
     }
 
+    # TODO: create separated function
     foreach my $entry ( keys %{$lang_entries_ref} ) {
         if ( $lang_entries_ref->{$entry}
             && has_hudson( $lang_entries_ref->{$entry} ) )
@@ -263,7 +268,7 @@ sub process_file {
         open( my $out, '>>', $curr_lang_file )
             or die "Cannot write to $curr_lang_file: $!\n";
 
-        foreach my $entry ( keys %{$jelly_entries_ref} ) {
+        foreach my $entry ( keys %{$merged_ref} ) {
             unless ( exists( $lang_entries_ref->{$entry} ) ) {
 
                 unless ( $lang_entries_ref->{$entry} ) {
@@ -272,6 +277,7 @@ sub process_file {
                         if ( $processor->use_counter );
                     push( @todo, '--- ' );
 
+                        # TODO: use merged_ref, testing if the key has a value or not
                     if ( $english_entries_ref->{$entry} ) {
                         push( @todo, $english_entries_ref->{$entry} );
                     }
@@ -291,7 +297,7 @@ sub process_file {
     if ( $processor->is_remove and $warnings->has_unused ) {
         my $removed
             = remove_unused( $curr_lang_file,
-            Set::Tiny->new( keys( %{$jelly_entries_ref} ) ),
+            Set::Tiny->new( keys( %{$merged_ref} ) ),
             $license->read );
         print "Removed $removed keys\n";
     }
