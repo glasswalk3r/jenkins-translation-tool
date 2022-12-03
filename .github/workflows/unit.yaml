@@ -3,8 +3,13 @@ name: Unit tests
 on:  # yamllint disable-line rule:truthy
   push:
     paths-ignore:
-      - 'README.md'
+      - '*.md'
       - 'Vagrantfile'
+      - 'Changes'
+      - 'tidyall'
+      - 'MANIFEST'
+      - 'perlcriticrc'
+      - 'perltidyrc'
 jobs:
   prove:
     name: Test::More prove CLI execution
