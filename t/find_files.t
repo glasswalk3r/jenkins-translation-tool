@@ -21,17 +21,23 @@ ok( $results = find_files( $samples_dir, $known_langs ), 'find_files works' );
 isa_ok( $results, 'Jenkins::i18n::FindResults',
     'find_files returns an instance of Jenkins::i18n::FindResults' );
 
-my $expected_ref = [
-    File::Spec->catfile(qw(t samples Messages.properties)),
-    File::Spec->catfile(qw(t samples config.jelly)),
-    File::Spec->catfile(qw(t samples message.jelly)),
-    File::Spec->catfile(qw(t samples mixed buildCaption.properties)),
-    File::Spec->catfile(qw(t samples mixed buildCaption.jelly)),
-];
+my @current = sort( @{ $results->{files} } );
 
-is_deeply( $results->{files}, $expected_ref,
+is_deeply( \@current, expected_files(),
     'find_files returns the expected files' )
     or diag( explain($results) );
+
+sub expected_files {
+    my @expected = (
+        File::Spec->catfile(qw(t samples Messages.properties)),
+        File::Spec->catfile(qw(t samples config.jelly)),
+        File::Spec->catfile(qw(t samples message.jelly)),
+        File::Spec->catfile(qw(t samples mixed buildCaption.properties)),
+        File::Spec->catfile(qw(t samples mixed buildCaption.jelly)),
+    );
+    my @sorted = sort(@expected);
+    return \@sorted;
+}
 
 # -*- mode: perl -*-
 # vi: set ft=perl :

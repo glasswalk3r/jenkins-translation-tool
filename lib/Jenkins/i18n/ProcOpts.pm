@@ -3,11 +3,13 @@ package Jenkins::i18n::ProcOpts;
 use 5.014004;
 use strict;
 use warnings;
+use base       qw(Class::Accessor);
 use Hash::Util qw(lock_hash unlock_value lock_value);
 use Carp       qw(confess);
 use File::Spec;
 
-# TODO: use Class::Accessor for getters
+__PACKAGE__->follow_best_practice;
+__PACKAGE__->mk_ro_accessors(qw(language source_dir target_dir counter));
 
 our $VERSION = '0.09';
 
@@ -160,35 +162,14 @@ sub search_term {
 
 Returns a string identifying the chosen language for processing.
 
-=cut
-
-sub get_language {
-    my $self = shift;
-    return $self->{language};
-}
-
-=head2 get_source
+=head2 get_source_dir
 
 Returns string of the path where the translation files should be looked for.
 
-=cut
-
-sub get_source {
-    my $self = shift;
-    return $self->{source_dir};
-}
-
-=head2 get_target
+=head2 get_target_dir
 
 Returns a string of the path where the reviewed translation files should be
 written to.
-
-=cut
-
-sub get_target {
-    my $self = shift;
-    return $self->{target_dir};
-}
 
 =head2 inc
 
@@ -226,13 +207,6 @@ sub use_counter {
 
 Returns an integer representing the number of translation files already
 processed.
-
-=cut
-
-sub get_counter {
-    my $self = shift;
-    return $self->{counter};
-}
 
 =head2 is_remove
 

@@ -8,9 +8,14 @@ use File::Spec;
 use Jenkins::i18n::ProcOpts;
 
 my $class = 'Jenkins::i18n::ProcOpts';
-can_ok( $class,
-    qw(new inc use_counter get_counter is_remove is_add is_debug get_language is_to_search search_term)
+
+my @expected_methods = (
+    'new',            'inc',            'use_counter',  'get_counter',
+    'is_remove',      'is_add',         'is_debug',     'get_language',
+    'get_source_dir', 'get_target_dir', 'is_to_search', 'search_term'
 );
+
+can_ok( $class, @expected_methods );
 my $source = File::Spec->catdir( File::Spec->rootdir(), 'foo' );
 my $target = File::Spec->catdir( File::Spec->rootdir(), 'bar' );
 
@@ -58,9 +63,11 @@ is( $instance->is_remove,    0,       'file removal is disabled' );
 is( $instance->is_add,       0,       'file addition is disabled' );
 is( $instance->is_debug,     0,       'debugging is disabled' );
 is( $instance->get_language, 'pt_BR', 'get_language() works as expected' );
-is( $instance->get_source,   $source, 'get_source() works as expected' );
-is( $instance->get_target,   $target, 'get_target() works as expected' );
-is( $instance->is_to_search, 0,       'is_to_search() works as expected' );
+is( $instance->get_source_dir, $source,
+    'get_source_dir() works as expected' );
+is( $instance->get_target_dir, $target,
+    'get_target_dir() works as expected' );
+is( $instance->is_to_search, 0, 'is_to_search() works as expected' );
 
 note('Switching target_dir');
 my $jelly_file = 'message.jelly';

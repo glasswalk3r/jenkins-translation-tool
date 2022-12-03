@@ -3,10 +3,10 @@ package Jenkins::i18n::Stats;
 use 5.014004;
 use strict;
 use warnings;
+use base       qw(Class::Accessor);
 use Hash::Util qw(lock_keys);
 use Carp       qw(confess);
 use Set::Tiny;
-use base 'Class::Accessor';
 
 my @ATTRIBUTES = qw(files missing unused empty same no_jenkins keys);
 
