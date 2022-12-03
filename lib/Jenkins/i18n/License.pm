@@ -3,7 +3,7 @@ package Jenkins::i18n::License;
 use 5.014004;
 use strict;
 use warnings;
-use Carp qw(confess);
+use Carp       qw(confess);
 use File::Path qw(make_path);
 use DateTime::Tiny;
 use Hash::Util qw(lock_keys);
@@ -29,7 +29,7 @@ It is intended to be used to provide the license text on new properties files.
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 METHODS
 
@@ -46,16 +46,16 @@ sub new {
     my $now   = DateTime::Tiny->now;
     my $self  = {
         current_year => $now->year,
-        data_start   => tell DATA
+        content      => undef
     };
     bless $self, $class;
     lock_keys( %{$self} );
     return $self;
 }
 
-=head2 print_license
+=head2 print
 
-Print a license text to a properties file.
+Print the license text to a file.
 
 Expects as parameters:
 
@@ -69,7 +69,7 @@ the complete path to the file
 
 =cut
 
-sub print_license {
+sub print {
     my ( $self, $file ) = @_;
     confess 'The complete path to the file parameter is required'
         unless ($file);
@@ -78,7 +78,7 @@ sub print_license {
     my $dirs = ( File::Spec->splitpath($file) )[1];
     make_path($dirs) unless ( -d $dirs );
     open( my $out, '>', $file ) or confess "Cannot write to $file: $!\n";
-    my $data_ref = $self->read_license;
+    my $data_ref = $self->read;
 
     foreach my $line ( @{$data_ref} ) {
         print $out "#$line";
@@ -87,7 +87,7 @@ sub print_license {
     close($out);
 }
 
-=head2 read_license
+=head2 read
 
 Returns the license, as an array reference.
 
@@ -96,21 +96,26 @@ include the current year.
 
 =cut
 
-sub read_license {
+sub read {
     my $self = shift;
 
-    seek DATA, $self->{data_start}, 0;
-    my @license                  = <DATA>;
-    my $additional_license_index = 4;
+    unless ( $self->{content} ) {
+        my @license                  = <DATA>;
+        my $additional_license_index = 4;
 
-    # right after the copyright line
-    confess "Unexpected license content, expected only a new line at 4 index"
-        unless ( $license[$additional_license_index] eq "\n" );
+        # right after the copyright line
+        confess
+            "Unexpected license content, expected only a new line at 4 index"
+            unless ( $license[$additional_license_index] eq "\n" );
 
-    $license[$additional_license_index]
-        = ' Copyright (c) '    # a space in the beginning is required
-        . $self->{current_year} . "- Jenkins contributors.\n";
-    return \@license;
+        $license[$additional_license_index]
+            = ' Copyright (c) '    # a space in the beginning is required
+            . $self->{current_year} . "- Jenkins contributors.\n";
+
+        $self->{content} = \@license;
+    }
+
+    return $self->{content};
 }
 
 =head1 AUTHOR

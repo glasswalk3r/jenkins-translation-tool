@@ -4,6 +4,7 @@ on:  # yamllint disable-line rule:truthy
   push:
     paths-ignore:
       - 'README.md'
+      - 'Vagrantfile'
 jobs:
   prove:
     name: Test::More prove CLI execution
@@ -15,8 +16,9 @@ jobs:
         uses: tecoli-com/actions-use-perl-tools@v1.1
         with:
           tools: >-
-            DateTime::Tiny
+            Class::Accessor
             Config::Properties
+            DateTime::Tiny
             Devel::CheckOS
             File::Path
             Set::Tiny
@@ -26,6 +28,7 @@ jobs:
             Term::ProgressBar
             Test::TempDir::Tiny
             Test::Warnings
+            Test::Pod::Coverage
       - name: runs unit tests
         run: prove -l
       - name: runs extended unit tests
