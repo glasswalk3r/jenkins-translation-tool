@@ -16,8 +16,9 @@ jobs:
         uses: tecoli-com/actions-use-perl-tools@v1.1
         with:
           tools: >-
-            DateTime::Tiny
+            Class::Accessor
             Config::Properties
+            DateTime::Tiny
             Devel::CheckOS
             File::Path
             Set::Tiny
