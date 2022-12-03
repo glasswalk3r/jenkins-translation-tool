@@ -277,7 +277,7 @@ sub process_file {
                         if ( $processor->use_counter );
                     push( @todo, '--- ' );
 
-                        # TODO: use merged_ref, testing if the key has a value or not
+                 # TODO: use merged_ref, testing if the key has a value or not
                     if ( $english_entries_ref->{$entry} ) {
                         push( @todo, $english_entries_ref->{$entry} );
                     }
