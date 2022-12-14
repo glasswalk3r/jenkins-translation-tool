@@ -8,6 +8,29 @@ unused keys for a given language.
 This is a fork from the original Perl script `translation-tool.pl` available at
 the [official Jenkins project](https://github.com/jenkinsci/jenkins).
 
+## Install
+
+### TLDR
+
+You will need to have Perl version 5.14 or higher available in your system,
+which should be default for UNIX-like operational systems like Linux and MacOSX.
+
+  ```
+  cpan Jenkins::i18n
+  ```
+
+### Detailed description
+
+There are several ways to install Perl modules, all very well documented by
+the community. Those external dependencies are all Perl modules available at
+[CPAN](https://metacpan.org/).
+
+Here is a list of ways to do it:
+
+1. Install with [cpan](https://metacpan.org/dist/CPAN/view/scripts/cpan#SYNOPSIS) CLI and [local::lib](https://metacpan.org/pod/local::lib).
+2. Install [perlbrew](https://perlbrew.pl/), install your personal `perl` then use `cpan` CLI.
+3. Install modules as root using `cpan` CLI: worst and not recommended method.
+
 ## Differences from the original tool
 
 `jtt` is:
@@ -186,29 +209,6 @@ This report was retrieve at 2022-11-15 14:15:18-03:00.
 - A suggested [workflow](Workflow.md) to carry on translations with `jtt`.
 - A bit of [history](History.md) that influenced how design decisions were
 made to this project.
-
-## Install
-
-### TLDR
-
-You will need to have Perl version 5.14 or higher available in your system,
-which should be default for UNIX-like operational systems like Linux and MacOSX.
-
-  ```
-  cpan Jenkins::i18n
-  ```
-
-### Detailed description
-
-There are several ways to install Perl modules, all very well documented by
-the community. Those external dependencies are all Perl modules available at
-[CPAN](https://metacpan.org/).
-
-Here is a list of ways to do it:
-
-1. Install with [cpan](https://metacpan.org/dist/CPAN/view/scripts/cpan#SYNOPSIS) CLI and [local::lib](https://metacpan.org/pod/local::lib).
-2. Install [perlbrew](https://perlbrew.pl/), install your personal `perl` then use `cpan` CLI.
-3. Install modules as root using `cpan` CLI: worst and not recommended method.
 
 ## Development details
 
