@@ -21,7 +21,7 @@ Just drop to a shell session and enter:
   cpan Jenkins::i18n
   ```
 
-iF you never used the `cpan` CLI, a lot of questions you be prompt to you, but
+If you never used the `cpan` CLI, a lot of questions you be prompt to you, but
 it's safe to accept all the defaults.
 
 ### Detailed description
