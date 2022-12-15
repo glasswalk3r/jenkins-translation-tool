@@ -15,9 +15,14 @@ the [official Jenkins project](https://github.com/jenkinsci/jenkins).
 You will need to have Perl version 5.14 or higher available in your system,
 which should be default for UNIX-like operational systems like Linux and MacOSX.
 
+Just drop to a shell session and enter:
+
   ```
   cpan Jenkins::i18n
   ```
+
+iF you never used the `cpan` CLI, a lot of questions you be prompt to you, but
+it's safe to accept all the defaults.
 
 ### Detailed description
 
