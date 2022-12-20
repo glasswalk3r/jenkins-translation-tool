@@ -1,11 +1,12 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 use Jenkins::i18n::FindResults;
 
 my $instance = Jenkins::i18n::FindResults->new;
 isa_ok( $instance, 'Jenkins::i18n::FindResults' );
+can_ok( $instance, qw(get_files get_warnings get_total_files) );
 ok( $instance->add_file('foo'), 'Can add a file' );
 ok( $instance->add_file('bar'), 'Can add another file' );
 is( $instance->size, 2, 'have the expected number of files' );
