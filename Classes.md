@@ -1,5 +1,12 @@
 # Classes diagram
 
+These are the classes in use by `jtt`.
+
+Before jumping into it, please consider that:
+
+- Perl doesn't have the concept of private methods, but `-` is there just to visualize that.
+- `ConfigProperties` stands for `Config::Properties`, which is available at CPAN.
+
 ```mermaid
 classDiagram
 class Stats {
@@ -57,4 +64,13 @@ class Warnings {
   +has_missing()
   +has_found()
 }
+class Properties {
+  +save()
+  +unescape()
+  +process_line()
+  -_save()
+}
+
+class ConfigProperties
+ConfigProperties <|-- JenkinsI18nProperties
 ```
