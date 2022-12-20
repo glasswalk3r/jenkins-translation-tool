@@ -239,17 +239,6 @@ sub summary {
     return {};
 }
 
-=head2 files
-
-Getter for the C<files> attribute.
-
-=cut
-
-sub files {
-    my $self = shift;
-    return $self->{files};
-}
-
 1;
 __END__
 
