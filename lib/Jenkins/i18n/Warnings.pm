@@ -21,7 +21,8 @@ Jenkins::i18n::Warnings - stores and handles translation warnings
 
 =head1 DESCRIPTION
 
-C<Jenkins::i18n::Warnings>
+C<Jenkins::i18n::Warnings> registers and handles all warnings identified during
+execution of C<jtt>.
 
 =head2 EXPORT
 
