@@ -37,7 +37,7 @@ sub new {
 
 =head2 add_file
 
-Adds a file to the files set.
+Adds a file to the files list.
 
 Expects a string as parameters.
 
@@ -52,7 +52,7 @@ sub add_file {
 
 =head2 add_warning
 
-Adds a warning to the warnings set.
+Adds a warning to the warnings list.
 
 Expects as parameters a string.
 
@@ -79,15 +79,15 @@ sub _generic_iterator {
 
 =head2 files
 
-Returns an iterator for the files set, as a C<sub> reference.
+Returns an iterator for the files list, as a C<sub> reference.
 
 The iterator will return C<undef> when there are no more elements so you can
 use it inside an C<while> loop.
 
 The iterator only moves foward and the items will be alphabetically sorted.
 
-Adding new files to the set after an iterator is created won't update it
-automatically, one will need to create a new one with this method.
+Adding new files to the list after an iterator is created won't update it
+automatically, one will need to create a new one again by invoking this method.
 
 Expects no parameter.
 
@@ -101,7 +101,7 @@ sub files {
 
 =head2 warnings
 
-Returns an iterator for the warnings set, as a C<sub> reference.
+Returns an iterator for the warnings list, as a C<sub> reference.
 
 The iterator will return C<undef> when there are no more elements so you can
 use it inside an C<while> loop.
@@ -110,7 +110,7 @@ The iterator only moves foward, the order of items will be in the sequence of
 registry of each warning.
 
 Adding new files to the set after an iterator is created won't update it
-automatically, one will need to create a new one with this method.
+automatically, one will need to create a new one again by invoking this method.
 
 Expects no parameter.
 
@@ -123,7 +123,7 @@ sub warnings {
 
 =head2 size
 
-Returns a integer with the total of elements for the files.
+Returns a integer of the total of elements in the files list.
 
 =cut
 
