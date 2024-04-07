@@ -1,6 +1,6 @@
 # jenkins-translation-tool
 
-![Unit tests](https://github.com/glasswalk3r/jenkins-translation-tool/actions/workflows/unit.yaml/badge.svg?branch=main)
+![Unit tests](https://github.com/glasswalk3r/jenkins-translation-tool/actions/workflows/unit-test.yml/badge.svg?branch=main)
 
 CLI to generate missing translation keys and missing properties files and remove
 unused keys for a given language.
