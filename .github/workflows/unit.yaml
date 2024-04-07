@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v4
       - name: install and cache Perl distributions
         uses: tecoli-com/actions-use-perl-tools@v1.1
         with:
