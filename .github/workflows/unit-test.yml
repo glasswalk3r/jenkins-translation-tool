@@ -10,6 +10,9 @@ on:  # yamllint disable-line rule:truthy
       - 'MANIFEST'
       - 'perlcriticrc'
       - 'perltidyrc'
+  pull_request:
+    branches:
+      - main
 jobs:
   prove:
     name: Test::More prove CLI execution
